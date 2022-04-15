@@ -1,38 +1,20 @@
-from telegram.ext import CommandHandler, Updater
-from telegram import ReplyKeyboardMarkup
-import requests
+import logging
+import os
 from dotenv import load_dotenv
-import os, logging
+from pyrogram import Client
+from telegram import ReplyKeyboardMarkup
 from telegram.ext import CommandHandler, MessageHandler, Updater, Filters
 
 load_dotenv()
 
 token = os.getenv('TOKEN')
+api_id = os.getenv('API_ID')
+api_hash = os.getenv('API_HASH')
+app = Client('new_account', api_id, api_hash)
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO)
-
-
-def get_new_image():
-    try:
-        url = 'https://api.thecatapi.com/v1/images/search'
-        response = requests.get(url)
-    except Exception as error:
-        logging.error(f'Ошибка при запросе к основному API: {error}')
-        new_url = 'https://api.thedogapi.com/v1/images/search'
-        response = requests.get(new_url)
-    response = response.json()
-    random_cat = response[0].get('url')
-    return random_cat
-
-
-def new_cat(update, context):
-    chat = update.effective_chat
-    # context.bot.send_photo(chat.id, get_new_image())
-    context.bot.send_photo(chat.id, get_new_image())
-
-
 def wake_up(update, context):
     chat = update.effective_chat
     name = update.message.chat.first_name
@@ -59,7 +41,29 @@ def msg_parse(update, context):
 
 
 def people_parse(update, context):
-    pass
+    print(context)
+    url = 'https://t.me/vdkzakhv'
+    user_ids = []
+    first_names = []
+    last_names = []
+    usernames = []
+    standart_phones = []
+    app.start()
+    participants = app.get_participants(url) # получаем список участников
+
+    # считывание основных параметров участников
+    for user in participants:
+        user_ids.append(str(user.id))
+        first_names.append(str(user.first_name))
+        last_names.append(str(user.last_name))
+        usernames.append('@' + str(user.username))
+        standart_phones.append(str(user.phone))
+        # if len(user_ids) == 10:
+        # break
+    # df_list = pd.DataFrame({'Id': user_ids,'Usernames': usernames,'First_name': first_names, 'Last_names': last_names,'standart_phones': standart_phones})
+    # df_list.to_csv('D:\HHHH.csv', sep=';', header=True, index=False)
+    print(user_ids)
+    app.run_until_disconnected()
 
 
 def main():
