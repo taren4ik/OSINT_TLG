@@ -29,6 +29,7 @@ def parsing(update, context):
     chat = update.effective_chat
     buttons = ReplyKeyboardMarkup([['/people'], ['/message']],
                                   resize_keyboard=True)
+    chat= update.message.text
     context.bot.send_message(
         chat_id=chat.id,
         text='Выберете тип отчета ',
