@@ -15,6 +15,8 @@ app = Client('new_account', api_id, api_hash)
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO)
+
+
 def wake_up(update, context):
     chat = update.effective_chat
     name = update.message.chat.first_name
@@ -29,7 +31,8 @@ def parsing(update, context):
     chat = update.effective_chat
     buttons = ReplyKeyboardMarkup([['/people'], ['/message']],
                                   resize_keyboard=True)
-    chat= update.message.text
+    context.user_data['chat_name'] = update.message.text
+    # Используя контекст context.user_data
     context.bot.send_message(
         chat_id=chat.id,
         text='Выберете тип отчета ',
@@ -42,15 +45,15 @@ def msg_parse(update, context):
 
 
 def people_parse(update, context):
-    print(context)
-    url = 'https://t.me/vdkzakhv'
+    print(context.user_data.get('chat_name', 'Not found'))
+    url = f'https://t.me/{ context.user_data.get("chat_name", "Not found")}'
     user_ids = []
     first_names = []
     last_names = []
     usernames = []
     standart_phones = []
     app.start()
-    participants = app.get_participants(url) # получаем список участников
+    participants = app.get_participants(url)  # получаем список участников
 
     # считывание основных параметров участников
     for user in participants:
@@ -68,13 +71,14 @@ def people_parse(update, context):
 
 
 def main():
-    updater = Updater(token)
-    updater.dispatcher.add_handler(CommandHandler('start', wake_up))
-    updater.dispatcher.add_handler(CommandHandler('people', people_parse))
-    updater.dispatcher.add_handler(CommandHandler('message', msg_parse))
-    updater.dispatcher.add_handler(MessageHandler(Filters.text, parsing))
-    updater.start_polling()
-    updater.idle()
+    while True:
+        updater = Updater(token)
+        updater.dispatcher.add_handler(CommandHandler('start', wake_up))
+        updater.dispatcher.add_handler(CommandHandler('people', people_parse))
+        updater.dispatcher.add_handler(CommandHandler('message', msg_parse))
+        updater.dispatcher.add_handler(MessageHandler(Filters.text, parsing))
+        updater.start_polling()
+        updater.idle()
 
 
 if __name__ == '__main__':
