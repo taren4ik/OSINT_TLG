@@ -1,8 +1,9 @@
-import logging
 import os
+import logging
+from telethon.sync import TelegramClient
 from dotenv import load_dotenv
-from pyrogram import Client
-from telegram import ReplyKeyboardMarkup
+from telegram import ReplyKeyboardMarkup, Bot
+from multiprocessing import Process
 from telegram.ext import CommandHandler, MessageHandler, Updater, Filters
 
 load_dotenv()
@@ -10,7 +11,8 @@ load_dotenv()
 token = os.getenv('TOKEN')
 api_id = os.getenv('API_ID')
 api_hash = os.getenv('API_HASH')
-app = Client('new_account', api_id, api_hash)
+
+bot = Bot(token=token)
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -25,36 +27,38 @@ def wake_up(update, context):
         text='Привет, {}. Введите название чата '.format(name),
 
     )
+    logging.DEBUG('wake_up отработала')
 
 
 def parsing(update, context):
+    """ Парсинг пользователей чата."""
     chat = update.effective_chat
-    buttons = ReplyKeyboardMarkup([['/people'], ['/message']],
-                                  resize_keyboard=True)
+    # buttons = ReplyKeyboardMarkup([['/people'], ['/message']],
+    #                               resize_keyboard=True)
     context.user_data['chat_name'] = update.message.text
     # Используя контекст context.user_data
-    context.bot.send_message(
-        chat_id=chat.id,
-        text='Выберете тип отчета ',
-        reply_markup=buttons,
-    )
-
-
-def msg_parse(update, context):
-    pass
-
-
-def people_parse(update, context):
+    # context.bot.send_message(
+    #     chat_id=chat.id,
+    #     text='Выберете тип отчета ',
+    #     reply_markup=buttons,
+    # )
     print(context.user_data.get('chat_name', 'Not found'))
-    url = f'https://t.me/{ context.user_data.get("chat_name", "Not found")}'
+    procs = []
+    proc = Process(target=msg_parse, args=(context.user_data['chat_name']),)
+    procs.append(proc)
+    proc.start()
+
+
+def msg_parse(chat):
+    url = f'https://t.me/{chat}'
     user_ids = []
     first_names = []
     last_names = []
     usernames = []
     standart_phones = []
+    app = TelegramClient('osint', api_id, api_hash)
     app.start()
     participants = app.get_participants(url)  # получаем список участников
-
     # считывание основных параметров участников
     for user in participants:
         user_ids.append(str(user.id))
@@ -70,12 +74,17 @@ def people_parse(update, context):
     app.run_until_disconnected()
 
 
+def people_parse(update, context):
+    pass
+
+
 def main():
     while True:
         updater = Updater(token)
         updater.dispatcher.add_handler(CommandHandler('start', wake_up))
-        updater.dispatcher.add_handler(CommandHandler('people', people_parse))
-        updater.dispatcher.add_handler(CommandHandler('message', msg_parse))
+        # updater.dispatcher.add_handler(
+        # CommandHandler('people', people_parse))
+        # updater.dispatcher.add_handler(CommandHandler('message', msg_parse))
         updater.dispatcher.add_handler(MessageHandler(Filters.text, parsing))
         updater.start_polling()
         updater.idle()
