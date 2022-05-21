@@ -1,9 +1,10 @@
 import os
+
+import pandas as pd
 import logging
 from telethon.sync import TelegramClient
 from dotenv import load_dotenv
 from telegram import ReplyKeyboardMarkup, Bot
-from multiprocessing import Process
 from telegram.ext import CommandHandler, MessageHandler, Updater, Filters
 from asyncio import set_event_loop, new_event_loop
 
@@ -32,39 +33,21 @@ def wake_up(update, context):
 
 
 def parsing(update, context):
-    """ Парсинг пользователей чата."""
+    """ВЫбор типа парсинга."""
     chat = update.effective_chat
     buttons = ReplyKeyboardMarkup([['/people'], ['/message']],
                                   resize_keyboard=True)
+    #Используtv контекст context.user_data
     context.user_data['chat_name'] = update.message.text
-    # Используя контекст context.user_data
     context.bot.send_message(
         chat_id=chat.id,
         text='Выберете тип отчета ',
         reply_markup=buttons,
     )
-    # print(context.user_data.get('chat_name', 'Not found'))
-    # procs = []
-    # proc = Process(target=msg_parse, args=(context.user_data['chat_name']), )
-    # procs.append(proc)
-    # proc.start()
-    # for proc in procs:
-    #     proc.join()
 
 
 def msg_parse(update, context):
-    # Получаем информацию о чате, из которого пришло сообщение,
-    # и сохраняем в переменную chat
-    user_chat = update.effective_chat
-    #context.user_data['chat_name'] = update.message.text
-    chat = context.user_data['chat_name']
-    # proc = Process(target=client, args=(chat, user_chat), )
-    # proc.start()
-    # print('Start')
-    # proc.join()
-
-    set_event_loop(new_event_loop())
-    client(chat, user_chat)
+    pass
 
 
 def client(chat, url):
@@ -86,14 +69,22 @@ def client(chat, url):
         standart_phones.append(str(user.phone))
         # if len(user_ids) == 10:
         # break
-    # df_list = pd.DataFrame({'Id': user_ids,'Usernames': usernames,'First_name': first_names, 'Last_names': last_names,'standart_phones': standart_phones})
+    df_list = pd.DataFrame(
+        {'Id': user_ids, 'Usernames': usernames, 'First_name': first_names,
+         'Last_names': last_names, 'standart_phones': standart_phones})
     # df_list.to_csv('D:\HHHH.csv', sep=';', header=True, index=False)
-    print(user_ids)
+    print(df_list)
     app.run_until_disconnected()
 
 
 def people_parse(update, context):
-    pass
+    """Парсинг пользователей чата."""
+    # Получаем информацию о чате, из которого получено сообщение,
+    # и сохраняем в переменную chat
+    user_chat = update.effective_chat
+    chat = context.user_data['chat_name']
+    set_event_loop(new_event_loop())
+    client(chat, user_chat)
 
 
 def main():
