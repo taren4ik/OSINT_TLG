@@ -1,3 +1,4 @@
+import json
 import os
 
 import pandas as pd
@@ -33,11 +34,11 @@ def wake_up(update, context):
 
 
 def parsing(update, context):
-    """ВЫбор типа парсинга."""
+    """Выбор типа парсинга."""
     chat = update.effective_chat
     buttons = ReplyKeyboardMarkup([['/people'], ['/message']],
                                   resize_keyboard=True)
-    #Используtv контекст context.user_data
+    # Используtv контекст context.user_data
     context.user_data['chat_name'] = update.message.text
     context.bot.send_message(
         chat_id=chat.id,
@@ -47,10 +48,11 @@ def parsing(update, context):
 
 
 def msg_parse(update, context):
+    """Прасинг сооющений."""
     pass
 
 
-def client(chat, url):
+def client(chat):
     user_ids = []
     first_names = []
     last_names = []
@@ -72,9 +74,11 @@ def client(chat, url):
     df_list = pd.DataFrame(
         {'Id': user_ids, 'Usernames': usernames, 'First_name': first_names,
          'Last_names': last_names, 'standart_phones': standart_phones})
-    # df_list.to_csv('D:\HHHH.csv', sep=';', header=True, index=False)
+    # df_list.to_csv(f'{chat}.csv', sep=';', header=True, index=False)
     print(df_list)
-    app.run_until_disconnected()
+    app.disconnect()
+    # app.run_until_disconnected()
+    return df_list
 
 
 def people_parse(update, context):
@@ -84,7 +88,17 @@ def people_parse(update, context):
     user_chat = update.effective_chat
     chat = context.user_data['chat_name']
     set_event_loop(new_event_loop())
-    client(chat, user_chat)
+    df_list = client(chat)
+    df_list.to_csv(f'{chat}.csv', sep=';', header=True, index=False)
+    # context.bot.send_message(
+    #     chat_id=user_chat.id,
+    #     text=''
+    # )
+    path = os.path.abspath(f'{chat}.csv')
+    context.bot.send_document(
+        chat_id=user_chat.id,
+        document= open(f'{path}', 'rb')
+    )
 
 
 def main():
