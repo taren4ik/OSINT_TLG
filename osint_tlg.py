@@ -1,4 +1,3 @@
-import json
 import os
 
 import pandas as pd
@@ -59,6 +58,7 @@ def client(chat):
     usernames = []
     standart_phones = []
     url = f'https://t.me/{chat}'
+
     app = TelegramClient('osint', api_id, api_hash)
     app.start()
     participants = app.get_participants(url)  # получаем список участников
