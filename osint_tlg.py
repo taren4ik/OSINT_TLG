@@ -47,7 +47,7 @@ def parsing(update, context):
 
 
 def msg_parse(update, context):
-    """Прасинг сооющений."""
+    """Прасинг сообщений."""
     pass
 
 
@@ -86,19 +86,21 @@ def people_parse(update, context):
     # Получаем информацию о чате, из которого получено сообщение,
     # и сохраняем в переменную chat
     user_chat = update.effective_chat
-    chat = context.user_data['chat_name']
+    context_user = context.user_data['chat_name']
+    if context_user.find(r'https://t.me/') != -1:
+        chat = context.user_data['chat_name'].split(r'/')[3]
+    else:
+        chat = context.user_data['chat_name']
+
     set_event_loop(new_event_loop())
     df_list = client(chat)
     df_list.to_csv(f'{chat}.csv', sep=';', header=True, index=False)
-    # context.bot.send_message(
-    #     chat_id=user_chat.id,
-    #     text=''
-    # )
     path = os.path.abspath(f'{chat}.csv')
     context.bot.send_document(
         chat_id=user_chat.id,
         document= open(f'{path}', 'rb')
     )
+    os.remove(path)
 
 
 def main():
