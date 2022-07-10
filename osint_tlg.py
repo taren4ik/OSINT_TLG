@@ -77,7 +77,7 @@ def msg_parse(update, context):
         chat = context.user_data['chat_name']
 
     set_event_loop(new_event_loop())
-    df_list = get_message(chat)  # получаем данные
+    df_list = get_message(chat)
     df_list.to_csv(f'{chat}.csv', sep=';', header=True, index=False)
     path = os.path.abspath(f'{chat}.csv')
     context.bot.send_document(
@@ -105,8 +105,7 @@ def get_people(chat):
         last_names.append(str(user.last_name))
         usernames.append('@' + str(user.username))
         standart_phones.append(str(user.phone))
-        # if len(user_ids) == 10:
-        # break
+
     df_list = pd.DataFrame(
         {'Id': user_ids, 'Usernames': usernames, 'First_name': first_names,
          'Last_names': last_names, 'standart_phones': standart_phones})
