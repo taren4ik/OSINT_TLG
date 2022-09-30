@@ -1,5 +1,4 @@
-#TODO сделать логгирование запросов и ограничение на крличество бесплатных
-#TODO сделать последовательную выгрузку для больших чатов
+# TODO ограничение на крличество бесплатных запросов
 import os
 
 import pandas as pd
@@ -24,6 +23,7 @@ logging.basicConfig(
 
 
 def wake_up(update, context):
+    """Выбор типа парсинга."""
     chat = update.effective_chat
     name = update.message.chat.first_name
     context.bot.send_message(
@@ -39,7 +39,7 @@ def parsing(update, context):
     chat = update.effective_chat
     buttons = ReplyKeyboardMarkup([['/people'], ['/message']],
                                   resize_keyboard=True)
-    # Используtv контекст context.user_data
+    # Использую контекст context.user_data
     context.user_data['chat_name'] = update.message.text
     context.bot.send_message(
         chat_id=chat.id,
@@ -49,6 +49,7 @@ def parsing(update, context):
 
 
 def get_message(chat):
+    """Парсинг сообщений."""
     msg_id = []
     msg_dt = []
     msg_txt = []
@@ -68,17 +69,18 @@ def get_message(chat):
 
 
 def msg_parse(update, context):
-    """Прасинг сообщений."""
+    """Парсинг сообщений."""
     user_chat = update.effective_chat
     context_user = context.user_data['chat_name']
     if context_user.find(r'https://t.me/') != -1:
         chat = context.user_data['chat_name'].split(r'/')[3]
     else:
         chat = context.user_data['chat_name']
-
+    get_users(user_chat, chat)  # логирование пользователей.
     set_event_loop(new_event_loop())
     df_list = get_message(chat)
-    df_list.to_csv(f'{chat}.csv', sep=';', header=True, index=False)
+    df_list.to_csv(f'{chat}.csv', sep=';', header=True, index=False,
+                   encoding='utf-8')
     path = os.path.abspath(f'{chat}.csv')
     context.bot.send_document(
         chat_id=user_chat.id,
@@ -88,52 +90,64 @@ def msg_parse(update, context):
 
 
 def get_people(chat):
+    """Формирование таблицы с информацией о пользователях."""
     user_ids = []
     first_names = []
     last_names = []
     usernames = []
+    bots = []
     standart_phones = []
     url = f'https://t.me/{chat}'
 
     app = TelegramClient('osint', api_id, api_hash)
     app.start()
-    participants = app.get_participants(url)  # получаем список участников
-    # считывание основных параметров участников
+    # print(app.get_participants.total)
+    participants = app.get_participants(url, aggressive=False, limit=5000)
+
     for user in participants:
         user_ids.append(str(user.id))
         first_names.append(str(user.first_name))
         last_names.append(str(user.last_name))
         usernames.append('@' + str(user.username))
         standart_phones.append(str(user.phone))
+        bots.append(str(user.bot))
 
     df_list = pd.DataFrame(
         {'Id': user_ids, 'Usernames': usernames, 'First_name': first_names,
-         'Last_names': last_names, 'standart_phones': standart_phones})
-    print(df_list)
+         'Last_names': last_names, 'standart_phones': standart_phones,
+         'Bots': bots})
     app.disconnect()
     return df_list
 
 
 def people_parse(update, context):
     """Парсинг пользователей чата."""
-    # Получаем информацию о чате, из которого получено сообщение,
-    # и сохраняем в переменную chat
     user_chat = update.effective_chat
     context_user = context.user_data['chat_name']
     if context_user.find(r'https://t.me/') != -1:
         chat = context.user_data['chat_name'].split(r'/')[3]
     else:
         chat = context.user_data['chat_name']
-
+    get_users(user_chat, chat)  # логирование пользователей.
     set_event_loop(new_event_loop())
-    df_list = get_people(chat) #получаем данные
-    df_list.to_csv(f'{chat}.csv', sep=';', header=True, index=False)
+    df_list = get_people(chat)  # получаем данные
+    df_list.to_csv(f'{chat}.csv', sep=';', header=True, index=False,
+                   encoding='utf-8')
     path = os.path.abspath(f'{chat}.csv')
     context.bot.send_document(
         chat_id=user_chat.id,
         document=open(f'{path}', 'rb')
     )
     os.remove(path)
+
+
+def get_users(user_chat, chat):
+    """БД пользователей ."""
+    df_users = pd.DataFrame(
+        {'ID': user_chat.id, 'USERNAME': user_chat.username, 'FIRSTNAME':
+            user_chat.first_name,
+         'REQUEST': chat}, index=[0])
+    df_users.to_csv(f'users.csv', sep=';', header=True, index=False)
 
 
 def main():
