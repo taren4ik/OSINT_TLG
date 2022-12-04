@@ -30,8 +30,8 @@ post_id = []
 post_message = []
 post_date = []
 
-api_id = '5323380'
-api_hash = '4f155364624eec73220ef19877b2d60'
+api_id = ''
+api_hash = ''
 channel = 't.me/pr_russia'
 
 with TelegramClient('osint', api_id, api_hash) as client:
