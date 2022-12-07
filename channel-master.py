@@ -77,7 +77,6 @@ async def main():
 
         try:
             part_of_division = client_msg.replies.replies // 100
-            header_comment = True
 
             while part_of_division >= 0:
                 result = await get_comment(channel, offset_msg,
@@ -113,18 +112,17 @@ async def main():
 
                 # sorted_df_messages = df_messages.sort_values(by='Id')
 
-                df_comments = df_messages.merge(df_users, on='Id',
-                                             how='inner')
-
-                df_comments.to_csv(f'{channel.split("/")[1]}.csv',
-                                   mode='a',
-                                   sep=';',
-                                   header=header_comment,
-                                   index=False,
-                                   encoding='utf-8')
-
+                # df_comments = df_messages.merge(df_users, on='Id',
+                # how='left')
                 part_of_division -= 1
-                header_comment = False
+            df_comments = df_messages.merge(df_users, on='Id',
+                                            how='left')
+            df_comments.to_csv(f'{channel.split("/")[1]}.csv',
+                               mode='a',
+                               sep=';',
+                               header=True,
+                               index=False,
+                               encoding='utf-8')
 
         except:
             print(f'Нет информации по посту!!!! {str(post.id)}')
