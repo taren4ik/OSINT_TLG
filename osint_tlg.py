@@ -1,8 +1,9 @@
 # TODO ограничение на крличество бесплатных запросов
+# TODO обработка канала
 import logging
 import os
 import pandas as pd
-import types
+from telethon import functions
 from asyncio import set_event_loop, new_event_loop
 from dotenv import load_dotenv
 from telegram import ReplyKeyboardMarkup, Bot
@@ -81,7 +82,7 @@ def msg_parse(update, context):
     set_event_loop(new_event_loop())
     df_list = get_message(chat)
     df_list.to_csv(f'{chat}.csv', sep=';', header=True, index=False,
-                   encoding='utf-8')
+                   encoding='utf-16')
     path = os.path.abspath(f'{chat}.csv')
     context.bot.send_document(
         chat_id=user_chat.id,
@@ -133,7 +134,7 @@ def people_parse(update, context):
     set_event_loop(new_event_loop())
     df_list = get_people(chat)  # получаем данные
     df_list.to_csv(f'{chat}.csv', sep=';', header=True, index=False,
-                   encoding='utf-8')
+                   encoding='utf-16')
     path = os.path.abspath(f'{chat}.csv')
     context.bot.send_document(
         chat_id=user_chat.id,
@@ -147,7 +148,7 @@ def get_chanel(channel):
     post_id = []
     post_message = []
     post_date = []
-    
+
     url = f'https://t.me/{channel}'
 
     with TelegramClient('osint', api_id, api_hash) as client:
@@ -200,7 +201,7 @@ def chanel_parse(update, context):
     set_event_loop(new_event_loop())
     df_list = get_chanel(chat)
     df_list.to_csv(f'{chat}.csv', sep=';', header=True, index=False,
-                   encoding='utf-8')
+                   encoding='utf-16')
     path = os.path.abspath(f'{chat}.csv')
     context.bot.send_document(
         chat_id=user_chat.id,
