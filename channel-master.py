@@ -1,8 +1,6 @@
 import json
 import os
 import time
-
-import matplotlib.pyplot as plt
 import pandas as pd
 from dotenv import load_dotenv
 from telethon import TelegramClient
@@ -13,8 +11,9 @@ load_dotenv()
 
 api_id = os.getenv('API_ID')
 api_hash = os.getenv('API_HASH')
-channel = 't.me/pr_russia'
 client = TelegramClient('osint', api_id, api_hash)
+
+channel = 't.me/bynkerRadikala1918'
 
 
 async def get_comment(channel, offset_msg, offset):
@@ -32,7 +31,7 @@ async def get_comment(channel, offset_msg, offset):
     return result
 
 
-async def main():
+async def comment_channal():
     user_ids = []
     first_names = []
     last_names = []
@@ -53,12 +52,13 @@ async def main():
         offset_msg = messages_total
     else:
         print('нет поста!!!')
-        offset_msg = ''
+       # offset_msg = 0
 
-    while offset_msg > 41140:  # глубина сканирования
+    while offset_msg > 0:  # глубина сканирования
         client_msg = await client.get_messages(channel, ids=offset_msg)
         if client_msg is not None:
             post = client_msg
+
             if post.message == '':
                 offset_msg = offset_msg - 1
                 continue
@@ -128,7 +128,8 @@ async def main():
 
                 df_comments = df_messages.merge(df_users, on='Id',
                                                 how='left')
-                df_comments = df_comments.drop_duplicates(subset='Id')
+
+                df_comments = df_comments.drop_duplicates(subset='Message')
                 part_of_division -= 1
 
             if df_comments.size != 0:
@@ -138,8 +139,6 @@ async def main():
                                    header=True,
                                    index=False,
                                    encoding='utf-16')
-                df_users = df_users[0:0]
-                df_messages = df_messages[0:0]
 
         except:
             print(f'Нет информации по посту!!!!ID: {str(post.id)}')
@@ -152,20 +151,16 @@ async def main():
         post_id = []
         post_message = []
         post_date = []
-        df_post = df_post[0:0]
+        df_messages = df_messages[0:0]
+        df_users = df_users[0:0]
         df_comments = df_comments[0:0]
         time.sleep(0.5)
-    sorted_tuple = sorted(users_data.items(), key=lambda x: x[1],reverse=True)
+    sorted_tuple = sorted(users_data.items(), key=lambda x: x[1], reverse=True)
     users_data = dict(sorted_tuple)
 
-    with open("users.json", "w") as json_file:
+    with open(f'{channel.split("/")[1]}_users.json', 'w') as json_file:
         json.dump(users_data, json_file)
-
-    fig, ax = plt.subplots()
-    ax.pie(users_data.items(), labels=users_data.keys())
-    ax.axis("equal")
-
 
 if __name__ == "__main__":
     with client:
-        client.loop.run_until_complete(main())
+        client.loop.run_until_complete(comment_channal())
