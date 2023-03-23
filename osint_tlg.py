@@ -1,5 +1,10 @@
 # TODO ограничение на крличество бесплатных запросов
-# TODO обработка канала
+# TODO проверка подписки на канал
+# TODO обработка всех пользователей чата
+# TODO обработка всех пользователей чата
+# TODO обработка всех сообщений пользователей чата
+
+
 import logging
 import os
 import pandas as pd
@@ -8,8 +13,8 @@ from asyncio import set_event_loop, new_event_loop
 from dotenv import load_dotenv
 from telegram import ReplyKeyboardMarkup, Bot
 from telegram.ext import CommandHandler, MessageHandler, Updater, Filters
+from telethon.tl.types import ChannelParticipantsAdmins
 from telethon.sync import TelegramClient
-
 
 load_dotenv()
 
@@ -25,7 +30,7 @@ logging.basicConfig(
 
 
 def wake_up(update, context):
-    """Выбор типа парсинга."""
+    """Запрос ссылки на канал/чат."""
     chat = update.effective_chat
     name = update.message.chat.first_name
     context.bot.send_message(
@@ -36,8 +41,8 @@ def wake_up(update, context):
     logging.DEBUG('wake_up отработала')
 
 
-def parsing(update, context):
-    """Выбор типа парсинга."""
+def choice_report(update, context):
+    """Выбор типа отчета."""
     chat = update.effective_chat
     buttons = ReplyKeyboardMarkup([['/people'], ['/message'], ['/chanel']],
                                   resize_keyboard=True)
@@ -51,7 +56,7 @@ def parsing(update, context):
 
 
 def get_message(chat):
-    """Парсинг сообщений."""
+    """Извлечение  сообщений из чата."""
     msg_id = []
     msg_dt = []
     msg_txt = []
@@ -71,42 +76,26 @@ def get_message(chat):
     return df_list
 
 
-def msg_parse(update, context):
-    """Парсинг сообщений."""
-    user_chat = update.effective_chat
-    context_user = context.user_data['chat_name']
-    if context_user.find(r'https://t.me/') != -1:
-        chat = context.user_data['chat_name'].split(r'/')[3]
-    else:
-        chat = context.user_data['chat_name']
-    get_users(user_chat, chat)  # логирование пользователей.
-    set_event_loop(new_event_loop())
-    df_list = get_message(chat)
-    df_list.to_csv(f'{chat}.csv', sep=';', header=True, index=False,
-                   encoding='utf-16')
-    path = os.path.abspath(f'{chat}.csv')
-    context.bot.send_document(
-        chat_id=user_chat.id,
-        document=open(f'{path}', 'rb')
-    )
-    os.remove(path)
-
-
-def get_people(chat):
-    """Формирование таблицы с информацией о пользователях."""
+def get_chat(chat):
+    """Извлечение участников чата."""
     user_ids = []
     first_names = []
     last_names = []
     usernames = []
     bots = []
     standart_phones = []
+    admins = []
+    admin_user = []
+
     url = f'https://t.me/{chat}'
 
     app = TelegramClient('osint', api_id, api_hash)
     app.start()
     # print(app.get_participants.total)
     participants = app.get_participants(url, aggressive=False, limit=5000)
-
+    for user in app.iter_participants(
+            chat, filter=ChannelParticipantsAdmins):
+        admin_user.append(user.id)
     for user in participants:
         user_ids.append(str(user.id))
         first_names.append(str(user.first_name))
@@ -114,34 +103,17 @@ def get_people(chat):
         usernames.append('@' + str(user.username))
         standart_phones.append(str(user.phone))
         bots.append(str(user.bot))
+        if user.id in admin_user:
+            admins.append('True')
+        else:
+            admins.append('None')
 
     df_list = pd.DataFrame(
         {'Id': user_ids, 'Usernames': usernames, 'First_name': first_names,
          'Last_names': last_names, 'standart_phones': standart_phones,
-         'Bots': bots})
+         'Bots': bots, 'Admin': admins})
     app.disconnect()
     return df_list
-
-
-def people_parse(update, context):
-    """Парсинг пользователей чата."""
-    user_chat = update.effective_chat
-    context_user = context.user_data['chat_name']
-    if context_user.find(r'https://t.me/') != -1:
-        chat = context.user_data['chat_name'].split(r'/')[3]
-    else:
-        chat = context.user_data['chat_name']
-    get_users(user_chat, chat)  # логирование пользователей.
-    set_event_loop(new_event_loop())
-    df_list = get_people(chat)  # получаем данные
-    df_list.to_csv(f'{chat}.csv', sep=';', header=True, index=False,
-                   encoding='utf-16')
-    path = os.path.abspath(f'{chat}.csv')
-    context.bot.send_document(
-        chat_id=user_chat.id,
-        document=open(f'{path}', 'rb')
-    )
-    os.remove(path)
 
 
 def get_chanel(channel):
@@ -177,30 +149,38 @@ def get_chanel(channel):
                 min_id=0,
                 hash=0
             ))
-    messages = app.get_messages(url,  5000)
+    messages = app.get_messages(url, 5000)
     for msg in messages:
         post.append(str(msg.message))
         id.append(str(msg.sender_id))
         dt.append(str(msg.date))
         user_id.append(str(msg.date))
     df_list = pd.DataFrame(
-        {'Id':  comment_id, 'DateTime': dt, 'Message': post,
+        {'Id': comment_id, 'DateTime': dt, 'Message': post,
          'IdUser': user_id})
     app.disconnect()
     return df_list
 
 
-def chanel_parse(update, context):
-    """Парсинг сообщений."""
+def get_report(update, context):
+    """Подготовка отчета."""
     user_chat = update.effective_chat
     context_user = context.user_data['chat_name']
+    context.user_data['button_type'] = update.message.text
+    type_report = update.message.text
     if context_user.find(r'https://t.me/') != -1:
         chat = context.user_data['chat_name'].split(r'/')[3]
     else:
         chat = context.user_data['chat_name']
     get_users(user_chat, chat)  # логирование пользователей.
     set_event_loop(new_event_loop())
-    df_list = get_chanel(chat)
+
+    if type_report == '/people':
+        df_list = get_chat(chat)
+    elif type_report == '/message':
+        df_list = get_message(chat)
+    else:
+        df_list = get_chanel(chat)
     df_list.to_csv(f'{chat}.csv', sep=';', header=True, index=False,
                    encoding='utf-16')
     path = os.path.abspath(f'{chat}.csv')
@@ -223,14 +203,15 @@ def get_users(user_chat, chat):
 def main():
     updater = Updater(token)
     updater.dispatcher.add_handler(CommandHandler('start', wake_up))
-    updater.dispatcher.add_handler(CommandHandler('message', msg_parse))
+    updater.dispatcher.add_handler(CommandHandler('message', get_report))
 
     updater.dispatcher.add_handler(
-        CommandHandler('people', people_parse))
+        CommandHandler('people', get_report))
 
     updater.dispatcher.add_handler(
-        CommandHandler('chanel', chanel_parse))
-    updater.dispatcher.add_handler(MessageHandler(Filters.text, parsing))
+        CommandHandler('chanel', get_report))
+    updater.dispatcher.add_handler(MessageHandler(Filters.text,
+                                                  choice_report))
 
     updater.start_polling()
     updater.idle()
