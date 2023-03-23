@@ -28,6 +28,8 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO)
 
+BUTTONS = ['chat_users', 'chat_messages', 'chanel_users']
+
 
 def wake_up(update, context):
     """Запрос ссылки на канал/чат."""
@@ -44,14 +46,13 @@ def wake_up(update, context):
 def choice_report(update, context):
     """Выбор типа отчета."""
     chat = update.effective_chat
-    buttons = ReplyKeyboardMarkup([['/people'], ['/message'], ['/chanel']],
-                                  resize_keyboard=True)
+    markup = ReplyKeyboardMarkup.from_column(BUTTONS, resize_keyboard=True)
     # Использую контекст context.user_data
     context.user_data['chat_name'] = update.message.text
     context.bot.send_message(
         chat_id=chat.id,
         text='Выберете тип отчета ',
-        reply_markup=buttons,
+        reply_markup=markup,
     )
 
 
@@ -175,9 +176,9 @@ def get_report(update, context):
     get_users(user_chat, chat)  # логирование пользователей.
     set_event_loop(new_event_loop())
 
-    if type_report == '/people':
+    if type_report == 'chat_users':
         df_list = get_chat(chat)
-    elif type_report == '/message':
+    elif type_report == 'chat_messages':
         df_list = get_message(chat)
     else:
         df_list = get_chanel(chat)
@@ -203,15 +204,10 @@ def get_users(user_chat, chat):
 def main():
     updater = Updater(token)
     updater.dispatcher.add_handler(CommandHandler('start', wake_up))
-    updater.dispatcher.add_handler(CommandHandler('message', get_report))
 
-    updater.dispatcher.add_handler(
-        CommandHandler('people', get_report))
-
-    updater.dispatcher.add_handler(
-        CommandHandler('chanel', get_report))
-    updater.dispatcher.add_handler(MessageHandler(Filters.text,
-                                                  choice_report))
+    updater.dispatcher.add_handler(MessageHandler(Filters.text(BUTTONS),
+                                                  get_report))
+    updater.dispatcher.add_handler(MessageHandler(Filters.text, choice_report))
 
     updater.start_polling()
     updater.idle()
