@@ -7,6 +7,8 @@
 
 import logging
 import os
+import sqlite3
+
 import pandas as pd
 from telethon import functions
 from asyncio import set_event_loop, new_event_loop
@@ -124,43 +126,7 @@ def get_chanel(channel):
     post_date = []
 
     url = f'https://t.me/{channel}'
-
-    with TelegramClient('osint', api_id, api_hash) as client:
-        messages_total = client.get_messages(channel).total
-        offset_msg = messages_total
-        while True:
-            # messages_total = client.get_messages(channel).total
-            # offset_msg = messages_total
-            post = client.get_messages(channel, ids=offset_msg - 1)  # пост
-
-            post_id.append(str())
-            post_message.append(post.message)
-            post_date.append(str(post.date.day) + '.' +
-                             str(post.date.month) + '.' +
-                             str(post.date.year))
-
-            result = client(functions.messages.GetRepliesRequest(
-                peer=channel,
-                msg_id=offset_msg,
-                offset_id=0,
-                offset_date=0,
-                add_offset=0,
-                limit=100,
-                max_id=0,
-                min_id=0,
-                hash=0
-            ))
-    messages = app.get_messages(url, 5000)
-    for msg in messages:
-        post.append(str(msg.message))
-        id.append(str(msg.sender_id))
-        dt.append(str(msg.date))
-        user_id.append(str(msg.date))
-    df_list = pd.DataFrame(
-        {'Id': comment_id, 'DateTime': dt, 'Message': post,
-         'IdUser': user_id})
-    app.disconnect()
-    return df_list
+    return ()
 
 
 def get_report(update, context):
@@ -193,12 +159,24 @@ def get_report(update, context):
 
 
 def get_users(user_chat, chat):
-    """БД пользователей ."""
-    df_users = pd.DataFrame(
-        {'ID': user_chat.id, 'USERNAME': user_chat.username, 'FIRSTNAME':
-            user_chat.first_name,
-         'REQUEST': chat}, index=[0])
-    df_users.to_csv(f'users.csv', sep=';', header=True, index=False)
+    """Запись в БД SQlite пользователей бота ."""
+    connect = sqlite3.connect('users.db')
+    cursor = connect.cursor()
+    cursor.execute("""CREATE TABLE IF NOT EXISTS users(
+                    id INTEGER PRIMARY KEY,
+                    username TEXT,
+                    firstname TEXT,                                           
+                    request TEXT);""")
+    connect.commit()
+    user = (user_chat.id, user_chat.username, user_chat.first_name, chat)
+    cursor.execute("INSERT INTO users VALUES(?, ?, ?, ?);", user)
+    connect.commit()
+    # df_users = pd.DataFrame(
+    #     {'ID': user_chat.id, 'USERNAME': user_chat.username, 'FIRSTNAME':
+    #         user_chat.first_name,
+    #      'REQUEST': chat}, index=[0])
+    # df_users.to_csv(f'users.csv', sep=';', header=False, mode='a',
+    # index=False)
 
 
 def main():
