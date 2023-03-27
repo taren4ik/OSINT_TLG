@@ -1,6 +1,5 @@
 import json
 import os
-import sqlite3
 import time
 import pandas as pd
 from dotenv import load_dotenv

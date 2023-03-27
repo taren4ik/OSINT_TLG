@@ -10,13 +10,18 @@ import os
 import sqlite3
 
 import pandas as pd
-from telethon import functions
 from asyncio import set_event_loop, new_event_loop
 from dotenv import load_dotenv
 from telegram import ReplyKeyboardMarkup, Bot
 from telegram.ext import CommandHandler, MessageHandler, Updater, Filters
 from telethon.tl.types import ChannelParticipantsAdmins
 from telethon.sync import TelegramClient
+
+from sqlalchemy import  create_engine,select, MetaData, Table, Column, \
+    Integer,String
+from sqlalchemy.orm import sessionmaker
+
+
 
 load_dotenv()
 
@@ -125,6 +130,7 @@ def get_chanel(channel):
     post_message = []
     post_date = []
 
+
     url = f'https://t.me/{channel}'
     return ()
 
@@ -164,13 +170,34 @@ def get_users(user_chat, chat):
     cursor = connect.cursor()
     cursor.execute("""CREATE TABLE IF NOT EXISTS users(
                     id INTEGER PRIMARY KEY,
+                    id_group INTEGER,
                     username TEXT,
                     firstname TEXT,                                           
                     request TEXT);""")
     connect.commit()
     user = (user_chat.id, user_chat.username, user_chat.first_name, chat)
-    cursor.execute("INSERT INTO users VALUES(?, ?, ?, ?);", user)
-    connect.commit()
+
+    dbpath = 'dafile2.db'
+    engine = create_engine(f'sqlite:///{dbpath}')
+    metadata = MetaData()
+    people = Table('people', metadata,
+                   Column('id', Integer, primary_key=True),
+                   Column('id_group', Integer),
+                   Column('firstname', String),
+                   Column('username', String),
+                   Column('request', String),)
+
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    metadata.create_all(engine)  # создание таблицы
+
+    people_ins = people.insert().values(user)
+    session.execute(people_ins)
+    session.commit()
+
+    # cursor.execute("INSERT INTO users VALUES (id_group, firstname, username)
+    #                request)(?, ?, ?, ?);", user)
+    # connect.commit()
     # df_users = pd.DataFrame(
     #     {'ID': user_chat.id, 'USERNAME': user_chat.username, 'FIRSTNAME':
     #         user_chat.first_name,
