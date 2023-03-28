@@ -17,6 +17,7 @@ from telegram.ext import CommandHandler, MessageHandler, Updater, Filters
 from telethon.tl.types import ChannelParticipantsAdmins
 from telethon.sync import TelegramClient
 
+
 from sqlalchemy import create_engine, select, MetaData, Table, Column, \
     Integer, String
 from sqlalchemy.orm import sessionmaker
@@ -198,6 +199,13 @@ def get_users(user_chat, chat):
                                         )
     session.execute(people_ins)
     session.commit()
+
+    # df_users = pd.DataFrame(
+    #     {'ID': user_chat.id, 'USERNAME': user_chat.username, 'FIRSTNAME':
+    #         user_chat.first_name,
+    #      'REQUEST': chat}, index=[0])
+    # df_users.to_csv(f'users.csv', sep=';', header=False, mode='a',
+    # index=False)
 
 
 def main():
