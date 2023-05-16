@@ -1,3 +1,5 @@
+# TODO обработка исключений если нет разрешения на считывание параметров
+
 import json
 import os
 import time
@@ -8,12 +10,11 @@ from telethon import functions
 
 load_dotenv()
 
-
 api_id = os.getenv('API_ID')
 api_hash = os.getenv('API_HASH')
 client = TelegramClient('osint', api_id, api_hash)
 
-channel = 't.me/bynkerRadikala1918'
+channel = 't.me/partizanskoeposobie'
 
 
 async def get_comment(channel, offset_msg, offset):
@@ -52,7 +53,7 @@ async def comment_channal():
         offset_msg = messages_total
     else:
         print('нет поста!!!')
-       # offset_msg = 0
+    # offset_msg = 0
 
     while offset_msg > 0:  # глубина сканирования
         client_msg = await client.get_messages(channel, ids=offset_msg)
@@ -63,7 +64,10 @@ async def comment_channal():
                 offset_msg = offset_msg - 1
                 continue
             else:
-                post_message.append(post.message)
+                if post.message:
+                    post_message.append(post.message.replace(r'\n', ''))
+                else:
+                    post_message.append(post.message)
 
             post_id.append(str(post.id))
             post_date.append(str(post.date.day) + '.' +
@@ -106,7 +110,11 @@ async def comment_channal():
 
                 for msg in result.messages:
                     ids_comment.append(str(msg.sender_id))
-                    messages_comment.append(str(msg.message))
+                    if msg.message:
+                        messages_comment.append(
+                            str(msg.message.replace(r'\n', '')))
+                    else:
+                        messages_comment.append(str(msg.message))
                     dates_comment.append(str(msg.date.day) + '.' +
                                          str(msg.date.month) + '.' +
                                          str(msg.date.year))
@@ -160,6 +168,7 @@ async def comment_channal():
 
     with open(f'{channel.split("/")[1]}_users.json', 'w') as json_file:
         json.dump(users_data, json_file)
+
 
 if __name__ == "__main__":
     with client:

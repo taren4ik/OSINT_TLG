@@ -1,8 +1,10 @@
-# TODO ограничение на крличество бесплатных запросов
+# TODO реализовать запуск клиента единажды (DRY)
 # TODO проверка подписки на канал
 # TODO обработка всех пользователей чата
-# TODO обработка всех пользователей чата
+# TODO обработка соединить функциональность для групп и каналов
 # TODO обработка всех сообщений пользователей чата
+# TODO переписать на асинронный код работу бота
+
 
 
 import logging
@@ -17,10 +19,10 @@ from telegram.ext import CommandHandler, MessageHandler, Updater, Filters
 from telethon.tl.types import ChannelParticipantsAdmins
 from telethon.sync import TelegramClient
 
-
 from sqlalchemy import create_engine, select, MetaData, Table, Column, \
     Integer, String
 from sqlalchemy.orm import sessionmaker
+
 
 load_dotenv()
 
@@ -28,11 +30,13 @@ token = os.getenv('TOKEN')
 api_id = os.getenv('API_ID')
 api_hash = os.getenv('API_HASH')
 
+
 bot = Bot(token=token)
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO)
+
 
 BUTTONS = ['chat_users', 'chat_messages', 'chanel_users']
 
@@ -69,7 +73,15 @@ def get_message(chat):
     msg_txt = []
     url = f'https://t.me/{chat}'
 
-    app = TelegramClient('osint', api_id, api_hash)
+    # app = TelegramClient('osint', api_id, api_hash)
+    app = TelegramClient(
+        'osint',
+        api_id,
+        api_hash,
+        system_version='4.16.30-vxCUSTOM',
+        device_model='1.py.0.97'
+    )
+
     app.start()
     messages = app.get_messages(url, 5000)
     for msg in messages:
@@ -96,9 +108,16 @@ def get_chat(chat):
 
     url = f'https://t.me/{chat}'
 
-    app = TelegramClient('osint', api_id, api_hash)
+    app = TelegramClient(
+        'osint',
+        api_id,
+        api_hash,
+        system_version='4.16.30-vxCUSTOM',
+        device_model='1.py.0.97'
+    )
+
     app.start()
-    # print(app.get_participants.total)
+
     participants = app.get_participants(url, aggressive=False, limit=5000)
     for user in app.iter_participants(
             chat, filter=ChannelParticipantsAdmins):
@@ -143,13 +162,14 @@ def get_report(update, context):
         chat = context.user_data['chat_name'].split(r'/')[3]
     else:
         chat = context.user_data['chat_name']
-    get_users(user_chat, chat)  # логирование пользователей.
+    #get_users(user_chat, chat)  # логирование пользователей.
     set_event_loop(new_event_loop())
 
     if type_report == 'chat_users':
         df_list = get_chat(chat)
     elif type_report == 'chat_messages':
         df_list = get_message(chat)
+        chat += '_messages'
     else:
         df_list = get_chanel(chat)
     df_list.to_csv(f'{chat}.csv', sep=';', header=True, index=False,
@@ -209,16 +229,23 @@ def get_users(user_chat, chat):
 
 
 def main():
+
     updater = Updater(token)
     updater.dispatcher.add_handler(CommandHandler('start', wake_up))
-
-    updater.dispatcher.add_handler(MessageHandler(Filters.text(BUTTONS),
-                                                  get_report))
+    updater.dispatcher.add_handler(MessageHandler(
+        Filters.text(BUTTONS),
+        get_report)
+    )
     updater.dispatcher.add_handler(MessageHandler(Filters.text, choice_report))
-
     updater.start_polling()
     updater.idle()
 
 
 if __name__ == '__main__':
     main()
+
+
+
+
+
+
