@@ -46,6 +46,7 @@ async def comment_channal():
     post_message = []
     post_date = []
     users_data = {}
+    df_result = pd.DataFrame(columns=['ID', 'COUNT'])
 
     client_msg = await client.get_messages(channel)
     if client_msg[0].id:
@@ -55,7 +56,7 @@ async def comment_channal():
         print('нет поста!!!')
     # offset_msg = 0
 
-    while offset_msg > 0:  # глубина сканирования
+    while offset_msg > 0:
         client_msg = await client.get_messages(channel, ids=offset_msg)
         if client_msg is not None:
             post = client_msg
@@ -147,6 +148,16 @@ async def comment_channal():
                                    header=True,
                                    index=False,
                                    encoding='utf-16')
+                users_data = dict(df_comments.iloc[:, 0].value_counts())
+                df_buffer = pd.DataFrame.from_dict(users_data,
+                                                   orient='index',
+                                                   columns=[
+                                                       "COUNT"]).reset_index()
+
+                df_buffer.rename(columns={'Index': 'ID'}, inplace=True)
+                df_buffer.columns = ['ID', 'COUNT']
+                df_result = df_result.append(df_buffer)
+                df_buffer = df_buffer[0:0]
 
         except:
             print(f'Нет информации по посту!!!!ID: {str(post.id)}')
@@ -163,11 +174,15 @@ async def comment_channal():
         df_users = df_users[0:0]
         df_comments = df_comments[0:0]
         time.sleep(0.5)
-    sorted_tuple = sorted(users_data.items(), key=lambda x: x[1], reverse=True)
-    users_data = dict(sorted_tuple)
 
-    with open(f'{channel.split("/")[1]}_users.json', 'w') as json_file:
-        json.dump(users_data, json_file)
+    df_result = df_result.groupby(['ID'])[['COUNT']].sum().reset_index()
+    df_result = df_result.sort_values(by=['COUNT'], ascending=[False])
+    df_result.to_csv(f'{channel.split("/")[1]}_users.csv',
+                       mode='a',
+                       sep=';',
+                       header=True,
+                       index=False,
+                       encoding='utf-16')
 
 
 if __name__ == "__main__":
