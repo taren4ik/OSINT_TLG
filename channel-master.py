@@ -1,6 +1,5 @@
 # TODO обработка исключений если нет разрешения на считывание параметров
 
-import json
 import os
 import time
 import pandas as pd

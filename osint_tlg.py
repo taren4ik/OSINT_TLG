@@ -183,7 +183,7 @@ def get_report(update, context):
 
 
 def get_users(user_chat, chat):
-    """Запись в БД SQlite пользователей бота ."""
+    """Запись в БД SQlite пользователей бота."""
     connect = sqlite3.connect('users.db')
     cursor = connect.cursor()
     cursor.execute("""CREATE TABLE IF NOT EXISTS users(
@@ -219,13 +219,6 @@ def get_users(user_chat, chat):
                                         )
     session.execute(people_ins)
     session.commit()
-
-    # df_users = pd.DataFrame(
-    #     {'ID': user_chat.id, 'USERNAME': user_chat.username, 'FIRSTNAME':
-    #         user_chat.first_name,
-    #      'REQUEST': chat}, index=[0])
-    # df_users.to_csv(f'users.csv', sep=';', header=False, mode='a',
-    # index=False)
 
 
 def main():
