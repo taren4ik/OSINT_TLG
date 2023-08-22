@@ -2,6 +2,7 @@
 
 import os
 import time
+import datetime
 import pandas as pd
 from dotenv import load_dotenv
 from telethon import TelegramClient
@@ -11,7 +12,9 @@ load_dotenv()
 
 api_id = os.getenv('API_ID')
 api_hash = os.getenv('API_HASH')
-client = TelegramClient('osint', api_id, api_hash)
+client = TelegramClient('osint', api_id, api_hash,
+                        system_version='4.16.33-vxCUSTOM',
+                        device_model='1.0.97')
 
 channel = 't.me/partizanskoeposobie'
 
@@ -57,22 +60,26 @@ async def comment_channal():
 
     while offset_msg > 0:
         client_msg = await client.get_messages(channel, ids=offset_msg)
+
         if client_msg is not None:
-            post = client_msg
-
-            if post.message == '':
-                offset_msg = offset_msg - 1
-                continue
+            if client_msg.date.date() < datetime.date(2023, 7, 15):
+                break
             else:
-                if post.message:
-                    post_message.append(post.message.replace(r'\n', ''))
-                else:
-                    post_message.append(post.message)
+                post = client_msg
 
-            post_id.append(str(post.id))
-            post_date.append(str(post.date.day) + '.' +
-                             str(post.date.month) + '.' +
-                             str(post.date.year))
+                if post.message == '':
+                    offset_msg = offset_msg - 1
+                    continue
+                else:
+                    if post.message:
+                        post_message.append(post.message.replace(r'\n', ''))
+                    else:
+                        post_message.append(post.message)
+
+                post_id.append(str(post.id))
+                post_date.append(str(post.date.day) + '.' +
+                                 str(post.date.month) + '.' +
+                                 str(post.date.year))
 
         else:
             offset_msg = offset_msg - 1

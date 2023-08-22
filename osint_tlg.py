@@ -112,8 +112,8 @@ def get_chat(chat):
         'osint',
         api_id,
         api_hash,
-        system_version='4.16.30-vxCUSTOM',
-        device_model='1.py.0.97'
+        system_version='4.16.31-vxCUSTOM',
+        device_model='1.0.97'
     )
 
     app.start()
