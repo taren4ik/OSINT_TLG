@@ -1,6 +1,7 @@
 import json
 import os
 import time
+import datetime
 import pandas as pd
 from dotenv import load_dotenv
 from telethon import TelegramClient
@@ -12,7 +13,7 @@ load_dotenv()
 api_id = os.getenv('API_ID')
 api_hash = os.getenv('API_HASH')
 client = TelegramClient('osint', api_id, api_hash)
-channel = 't.me/'
+channel = 't.me/politica_media'
 
 
 async def get_comment(channel, offset_msg, offset):
@@ -50,10 +51,11 @@ async def comment_channal():
         messages_total = client_msg[0].id
         offset_msg = messages_total
     else:
-        print('нет поста!!!')
+        print('Not post!!!')
 
     while offset_msg > 0:  # глубина
         client_msg = await client.get_messages(channel, ids=offset_msg)
+
         if client_msg is not None:
             post = client_msg
 
@@ -139,7 +141,7 @@ async def comment_channal():
                                    encoding='utf-16')
 
         except:
-            print(f'Нет информации по посту!!!!ID: {str(post.id)}')
+            print(f'Not information on comment!!!! ID: {str(post.id)}')
 
         offset_msg = offset_msg - 1
         ids_comment = []

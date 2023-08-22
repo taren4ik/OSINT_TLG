@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 from telegram import ReplyKeyboardMarkup, Bot
 from telegram.ext import CommandHandler, MessageHandler, Updater, Filters
 from telethon.tl.types import ChannelParticipantsAdmins
-from telethon.sync import TelegramClient
+from telethon.sync import TelegramClient, functions
 
 from sqlalchemy import create_engine, select, MetaData, Table, Column, \
     Integer, String
