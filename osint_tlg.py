@@ -6,7 +6,6 @@
 # TODO переписать на асинронный код работу бота
 
 
-
 import logging
 import os
 import sqlite3
@@ -18,10 +17,11 @@ from telegram import ReplyKeyboardMarkup, Bot
 from telegram.ext import CommandHandler, MessageHandler, Updater, Filters
 from telethon.tl.types import ChannelParticipantsAdmins
 from telethon.sync import TelegramClient, functions
-
 from sqlalchemy import create_engine, select, MetaData, Table, Column, \
     Integer, String
 from sqlalchemy.orm import sessionmaker
+
+from channel_modul import comment_channal
 
 
 load_dotenv()
@@ -38,7 +38,7 @@ logging.basicConfig(
     level=logging.INFO)
 
 
-BUTTONS = ['chat_users', 'chat_messages', 'chanel_users']
+BUTTONS = ['chat_users', 'chat_messages']
 
 
 def wake_up(update, context):
@@ -67,13 +67,12 @@ def choice_report(update, context):
 
 
 def get_message(chat):
-    """Извлечение  сообщений из чата."""
+    """Извлечение сообщений из чата."""
     msg_id = []
     msg_dt = []
     msg_txt = []
     url = f'https://t.me/{chat}'
 
-    # app = TelegramClient('osint', api_id, api_hash)
     app = TelegramClient(
         'osint',
         api_id,
@@ -142,18 +141,8 @@ def get_chat(chat):
     return df_list
 
 
-def get_chanel(channel):
-    """Парсинг сообщений."""
-    post_id = []
-    post_message = []
-    post_date = []
-
-    url = f'https://t.me/{channel}'
-    return ()
-
-
 def get_report(update, context):
-    """Подготовка отчета."""
+    """Подготовка отчета *.CSV."""
     user_chat = update.effective_chat
     context_user = context.user_data['chat_name']
     context.user_data['button_type'] = update.message.text
@@ -162,7 +151,7 @@ def get_report(update, context):
         chat = context.user_data['chat_name'].split(r'/')[3]
     else:
         chat = context.user_data['chat_name']
-    #get_users(user_chat, chat)  # логирование пользователей.
+    get_users(user_chat, chat)  # логирование пользователей.
     set_event_loop(new_event_loop())
 
     if type_report == 'chat_users':
@@ -170,8 +159,7 @@ def get_report(update, context):
     elif type_report == 'chat_messages':
         df_list = get_message(chat)
         chat += '_messages'
-    else:
-        df_list = get_chanel(chat)
+
     df_list.to_csv(f'{chat}.csv', sep=';', header=True, index=False,
                    encoding='utf-16')
     path = os.path.abspath(f'{chat}.csv')
@@ -198,27 +186,27 @@ def get_users(user_chat, chat):
                    username,request) VALUES (?, ?, ?, ?);""", user)
     connect.commit()
 
-    dbpath = 'dafile2.db'
-    engine = create_engine(f'sqlite:///{dbpath}')
-    metadata = MetaData()
-    people = Table('people', metadata,
-                   Column('id', Integer, primary_key=True),
-                   Column('id_group', Integer),
-                   Column('firstname', String),
-                   Column('username', String),
-                   Column('request', String), )
+    # dbpath = 'dafile2.db'
+    # engine = create_engine(f'sqlite:///{dbpath}')
+    # metadata = MetaData()
+    # people = Table('people', metadata,
+    #                Column('id', Integer, primary_key=True),
+    #                Column('id_group', Integer),
+    #                Column('firstname', String),
+    #                Column('username', String),
+    #                Column('request', String), )
 
-    Session = sessionmaker(bind=engine)
-    session = Session()
-    metadata.create_all(engine)  # создание таблицы
-
-    people_ins = people.insert().values(id_group=user_chat.id,
-                                        username=user_chat.username,
-                                        firstname=user_chat.first_name,
-                                        request=chat
-                                        )
-    session.execute(people_ins)
-    session.commit()
+    # Session = sessionmaker(bind=engine)
+    # session = Session()
+    # metadata.create_all(engine)  # создание таблицы
+    #
+    # people_ins = people.insert().values(id_group=user_chat.id,
+    #                                     username=user_chat.username,
+    #                                     firstname=user_chat.first_name,
+    #                                     request=chat
+    #                                     )
+    # session.execute(people_ins)
+    # session.commit()
 
 
 def main():
