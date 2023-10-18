@@ -57,11 +57,14 @@ API_HASH
 bash
 python osint_tlg.py
 ```
-### При первом запуске потребуется подтвердить телефон для работы  клиента
+
+
+### При первом запуске потребуется подтвердить телефон для работы клиента
 #Please enter your phone (or bot token): 
 #Please enter the code you received: 
 
 
 ***Над проектом работал:***
 * Дмитрий Пермяков | Github:https://github.com/taren4ik  
+* @OSINT_CHAT_BOT - рабочая версия
 
