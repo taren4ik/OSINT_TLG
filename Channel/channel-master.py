@@ -1,5 +1,3 @@
-# TODO обработка исключений если нет разрешения на считывание параметров
-
 import os
 import time
 import datetime
@@ -138,7 +136,6 @@ async def comment_channal():
                     {'Id': ids_comment,
                      'Date': dates_comment,
                      'Message': messages_comment})
-
 
                 df_comments = df_messages.merge(df_users, on='Id',
                                                 how='left')
