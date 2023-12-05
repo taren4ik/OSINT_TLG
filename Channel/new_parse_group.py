@@ -9,7 +9,6 @@ from telethon.tl.functions.messages import GetHistoryRequest
 
 import csv
 
-
 load_dotenv()
 
 api_id = os.getenv('API_ID')
@@ -20,42 +19,46 @@ client = TelegramClient('osint',
                         api_hash,
                         system_version='4.16.33-vxCUSTOM',
                         device_model='1.0.97'
-)
+                        )
 client.start()
 
 chats = []
 last_date = None
 chunk_size = 200
 groups = []
-result = client(GetDialogsRequest(
-    offset_date=last_date,
-    offset_id=0,
-    offset_peer=InputPeerEmpty(),
-    limit=chunk_size,
-    hash=0
-))
-chats.extend(result.chats)
-for chat in chats:
-    try:
-        if chat.megagroup == True:
-            groups.append(chat)
-    except:
-        continue
-print("Выберите группу для парсинга сообщений и членов группы:")
-i = 0
-for g in groups:
-    print(str(i) + "- " + g.title)
-    i += 1
-g_index = input("Введите нужную цифру: ")
-target_group = groups[int(g_index)]
+# result = client(GetDialogsRequest(
+#     offset_date=last_date,
+#     offset_id=0,
+#     offset_peer=InputPeerEmpty(),
+#     limit=chunk_size,
+#     hash=0
+# ))
+# chats.extend(result.chats)
+# for chat in chats:
+#     try:
+#         if chat.megagroup == True: #
+#             groups.append(chat)
+#     except:
+#         continue
+# print("Выберите группу для парсинга сообщений и членов группы:")
+# i = 0
+# for g in groups:
+#     print(str(i) + "- " + g.title)
+#     i += 1
+# g_index = input("Введите нужную цифру: ")
+# target_group = groups[int(g_index)]
+target_group = 'https://t.me/iditelesom_help'
 print("Узнаём пользователей...")
 all_participants = []
-all_participants = client.get_participants(target_group)
+try:
+    if client.get_participants(target_group):
+        all_participants = client.get_participants(target_group)
+except PermissionError as e:
+    print('Permission error', e)
 admin_user = []
-for user in client.iter_participants(
-        target_group, filter=ChannelParticipantsAdmins):
-    admin_user.append(user.id)
-
+# for user in client.iter_participants(
+#         target_group, filter=ChannelParticipantsAdmins):
+#     admin_user.append(user.id)
 
 print("Сохраняем данные в файл...")
 with open("members.csv", "w", encoding="UTF-8") as f:
@@ -103,7 +106,7 @@ offset_id = 0
 limit = 100
 all_messages = []
 total_messages = 0
-total_count_limit = 0
+total_count_limit = 100
 
 while True:
     history = client(GetHistoryRequest(

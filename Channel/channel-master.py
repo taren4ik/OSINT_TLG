@@ -14,7 +14,7 @@ client = TelegramClient('osint', api_id, api_hash,
                         system_version='4.16.33-vxCUSTOM',
                         device_model='1.0.97')
 
-channel = 't.me/partizanskoeposobie'
+channel = 't.me/iditelesom_help'
 
 
 async def get_comment(channel, offset_msg, offset):
