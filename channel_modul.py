@@ -2,7 +2,6 @@ import os
 import sqlite3
 import time
 
-import re
 import pandas as pd
 from datetime import datetime
 from asyncio import set_event_loop, new_event_loop
@@ -23,7 +22,6 @@ api_hash = os.getenv('API_HASH')
 bot = Bot(token=token)
 
 BUTTONS = ['channel']
-REGEX_PATTERN = r'\d{2}.\d{2}.\d{4}'
 
 
 def get_comment(channel, offset_msg, offset):
@@ -99,6 +97,10 @@ def get_channel(chat, date_to):
     post_date = []
     users_data = {}
     date = date_to.split('.')
+    if int(date[0][0]) == 0:
+        date[0] = date[0][1]
+    if int(date[1][0]) == 0:
+        date[1] = date[1][1]
     df_result = pd.DataFrame(columns=['ID', 'COUNT'])
     url = f'https://t.me/{chat}'
 
@@ -266,7 +268,7 @@ def get_report(update, context):
         chat = context.user_data['chat_name']
     date_to = context.user_data['date_to']
     set_event_loop(new_event_loop())
-    if type_report == 'get_channel':
+    if type_report == 'channel':
         df_list = get_channel(chat, date_to)
 
     df_list.to_csv(f'{chat}.csv', sep=';', header=True, index=False,
@@ -302,9 +304,11 @@ def main():
         Filters.text(BUTTONS),
         get_report)
     )
-    updater.dispatcher.add_handler(MessageHandler(Filters.text, choice_date))
-    updater.dispatcher.add_handler(MessageHandler(Filters.regex(REGEX_PATTERN)
-                                                  , choice_report))
+
+    updater.dispatcher.add_handler(MessageHandler(
+        Filters.regex(r'^\d{2}\.\d{2}\.\d{4}'), choice_report))
+    updater.dispatcher.add_handler(MessageHandler(
+        Filters.text, choice_date))
     updater.start_polling()
     updater.idle()
 

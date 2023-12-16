@@ -14,7 +14,7 @@ client = TelegramClient('osint', api_id, api_hash,
                         system_version='4.16.33-vxCUSTOM',
                         device_model='1.0.97')
 
-channel = 't.me/iditelesom_help'
+channel = 't.me/khodorkovski'
 
 
 async def get_comment(channel, offset_msg, offset):
@@ -54,13 +54,13 @@ async def comment_channal():
         offset_msg = messages_total
     else:
         print('нет поста!!!')
-    # offset_msg = 0
+
 
     while offset_msg > 0:
         client_msg = await client.get_messages(channel, ids=offset_msg)
 
         if client_msg is not None:
-            if client_msg.date.date() < datetime.date(2023, 7, 15):
+            if client_msg.date.date() < datetime.date(2023, 9, 1):
                 break
             else:
                 post = client_msg
