@@ -1,5 +1,4 @@
 import os
-import sqlite3
 import time
 
 import pandas as pd
@@ -73,12 +72,27 @@ def choice_report(update, context):
     """Выбор типа отчета."""
     chat = update.effective_chat
     markup = ReplyKeyboardMarkup.from_column(BUTTONS, resize_keyboard=True)
-    context.user_data['date_to'] = update.message.text
-    context.bot.send_message(
-        chat_id=chat.id,
-        text='Выберете тип отчета ',
-        reply_markup=markup,
-    )
+    date = update.message.text.split('.')
+    if int(date[0][0]) == 0:
+        date[0] = date[0][1]
+    if int(date[1][0]) == 0:
+        date[1] = date[1][1]
+
+    if (int(date[0]) not in range(1, 32)) or (
+            int(date[1]) not in range(1, 13)) or (int(date[2]) not in
+                                                   range(2010, 2100)):
+        context.bot.send_message(
+            chat_id=chat.id,
+            text='Введите глубину(дата) сканирования в формате дд.мм.гггг',
+        )
+    else:
+
+        context.user_data['date_to'] = update.message.text
+        context.bot.send_message(
+            chat_id=chat.id,
+            text='Выберете тип отчета ',
+            reply_markup=markup,
+        )
 
 
 def get_channel(chat, date_to):
@@ -97,10 +111,9 @@ def get_channel(chat, date_to):
     post_date = []
     users_data = {}
     date = date_to.split('.')
-    if int(date[0][0]) == 0:
-        date[0] = date[0][1]
-    if int(date[1][0]) == 0:
-        date[1] = date[1][1]
+
+
+
     df_result = pd.DataFrame(columns=['ID', 'COUNT'])
     url = f'https://t.me/{chat}'
 
