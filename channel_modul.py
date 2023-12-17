@@ -11,6 +11,7 @@ from telethon.sync import TelegramClient, functions
 from sqlalchemy import create_engine, select, MetaData, Table, Column, \
     Integer, String
 from sqlalchemy.orm import sessionmaker
+from telethon.tl.types import ChannelParticipantsAdmins
 
 load_dotenv()
 
@@ -20,23 +21,9 @@ api_hash = os.getenv('API_HASH')
 
 bot = Bot(token=token)
 
-BUTTONS = ['channel']
-
-
-def get_comment(channel, offset_msg, offset, client):
-    """Извлекает комментарии поста."""
-    result = client(functions.messages.GetRepliesRequest(
-        peer=channel,
-        msg_id=offset_msg,
-        offset_id=0,
-        offset_date=0,
-        add_offset=offset,
-        limit=100,
-        max_id=0,
-        min_id=0,
-        hash=0
-    ))
-    return result
+BUTTONS = ('channel',
+           'chat_users',
+           'chat_messages',)
 
 
 def wake_up(update, context):
@@ -84,6 +71,22 @@ def choice_report(update, context):
             text='Выберете тип отчета ',
             reply_markup=markup,
         )
+
+
+def get_comment(channel, offset_msg, offset, client):
+    """Извлекает комментарии поста."""
+    result = client(functions.messages.GetRepliesRequest(
+        peer=channel,
+        msg_id=offset_msg,
+        offset_id=0,
+        offset_date=0,
+        add_offset=offset,
+        limit=100,
+        max_id=0,
+        min_id=0,
+        hash=0
+    ))
+    return result
 
 
 def get_channel(chat, date_to):
@@ -272,6 +275,80 @@ def get_channel(chat, date_to):
     client.disconnect()
     return df_result
 
+def get_message(chat):
+    """Извлечение сообщений из чата."""
+    msg_id = []
+    msg_dt = []
+    msg_txt = []
+    url = f'https://t.me/{chat}'
+
+    app = TelegramClient(
+        'osint',
+        api_id,
+        api_hash,
+        system_version='4.16.30-vxCUSTOM',
+        device_model='1.py.0.97'
+    )
+
+    app.start()
+    messages = app.get_messages(url, 5000)
+    for msg in messages:
+        msg_txt.append(str(msg.message))
+        msg_id.append(str(msg.sender_id))
+        msg_dt.append(str(msg.date))
+    df_list = pd.DataFrame(
+        {'Id_user': msg_id, 'DateTime': msg_dt, 'Message': msg_txt})
+    df_list.sort_values(by='Id_user', ascending=False)
+    app.disconnect()
+    return df_list
+
+
+def get_chat(chat):
+    """Извлечение участников чата."""
+    user_ids = []
+    first_names = []
+    last_names = []
+    usernames = []
+    bots = []
+    standart_phones = []
+    admins = []
+    admin_user = []
+
+    url = f'https://t.me/{chat}'
+
+    app = TelegramClient(
+        'osint',
+        api_id,
+        api_hash,
+        system_version='4.16.31-vxCUSTOM',
+        device_model='1.0.97'
+    )
+
+    app.start()
+
+    participants = app.get_participants(url, aggressive=False, limit=5000)
+    for user in app.iter_participants(
+            chat, filter=ChannelParticipantsAdmins):
+        admin_user.append(user.id)
+    for user in participants:
+        user_ids.append(str(user.id))
+        first_names.append(str(user.first_name))
+        last_names.append(str(user.last_name))
+        usernames.append('@' + str(user.username))
+        standart_phones.append(str(user.phone))
+        bots.append(str(user.bot))
+        if user.id in admin_user:
+            admins.append('True')
+        else:
+            admins.append('None')
+
+    df_list = pd.DataFrame(
+        {'Id': user_ids, 'Usernames': usernames, 'First_name': first_names,
+         'Last_names': last_names, 'standart_phones': standart_phones,
+         'Bots': bots, 'Admin': admins})
+    app.disconnect()
+    return df_list
+
 
 def get_report(update, context):
     """Подготовка отчета в формате *.CSV."""
@@ -299,14 +376,20 @@ def get_report(update, context):
         )
         os.remove(path_users)
 
+    elif type_report == 'chat_users':
+        df_list = get_chat(chat)
+    elif type_report == 'chat_messages':
+        df_list = get_message(chat)
+        chat += '_messages'
+    df_list.to_csv(f'{chat}.csv', sep=';', header=True, index=False,
+                   encoding='utf-16')
+    path = os.path.abspath(f'{chat}.csv')
     context.bot.send_document(
         chat_id=user_chat.id,
         document=open(f'{path}', 'rb')
     )
 
     os.remove(path)
-
-
 # def get_users(user_chat, chat):
 #     """Запись в БД SQlite пользователей бота."""
 #     connect = sqlite3.connect('users.db')

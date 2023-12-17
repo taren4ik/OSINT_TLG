@@ -66,5 +66,5 @@ python osint_tlg.py
 
 ***Над проектом работал:***
 * Дмитрий Пермяков | Github:https://github.com/taren4ik  
-* @OSINT_CHAT_BOT - рабочая версия
+* @OSINT_CHAT_BOT - рабочая версия проекта
 
