@@ -2,7 +2,7 @@ import os
 import time
 
 import pandas as pd
-from datetime import datetime
+import datetime
 from asyncio import set_event_loop, new_event_loop
 from dotenv import load_dotenv
 from telegram import ReplyKeyboardMarkup, Bot
@@ -23,16 +23,8 @@ bot = Bot(token=token)
 BUTTONS = ['channel']
 
 
-def get_comment(channel, offset_msg, offset):
+def get_comment(channel, offset_msg, offset, client):
     """Извлекает комментарии поста."""
-    client = TelegramClient(
-        'osint',
-        api_id,
-        api_hash,
-        system_version='4.16.31-vxCUSTOM',
-        device_model='1.0.97'
-    )
-    client.start()
     result = client(functions.messages.GetRepliesRequest(
         peer=channel,
         msg_id=offset_msg,
@@ -44,7 +36,6 @@ def get_comment(channel, offset_msg, offset):
         min_id=0,
         hash=0
     ))
-    client.disconnect()
     return result
 
 
@@ -87,7 +78,7 @@ def choice_report(update, context):
         )
     else:
 
-        context.user_data['date_to'] = update.message.text
+        context.user_data['date_to'] = '.'.join(date)
         context.bot.send_message(
             chat_id=chat.id,
             text='Выберете тип отчета ',
@@ -110,11 +101,30 @@ def get_channel(chat, date_to):
     post_message = []
     post_date = []
     users_data = {}
-    date = date_to.split('.')
 
-
-
+    date = list(map(int,date_to.split('.')))
     df_result = pd.DataFrame(columns=['ID', 'COUNT'])
+    df_users = pd.DataFrame(
+        {'Id': user_ids,
+         'Username': usernames,
+         'First_name': first_names,
+         'Last_names': last_names,
+         'Phone': phones,
+         'isBot': bots})
+
+    df_messages = pd.DataFrame(
+        {'Id': ids_comment,
+         'Date': dates_comment,
+         'Message': messages_comment})
+    df_comments = pd.DataFrame({'Id': user_ids,
+         'Username': usernames,
+         'First_name': first_names,
+         'Last_names': last_names,
+         'Phone': phones,
+         'isBot': bots,
+         'Id': ids_comment,
+         'Date': dates_comment,
+         'Message': messages_comment})
     url = f'https://t.me/{chat}'
 
     client = TelegramClient(
@@ -176,7 +186,7 @@ def get_channel(chat, date_to):
 
             while part_of_division >= 0:
                 result = get_comment(url, offset_msg,
-                                     part_of_division * 100)
+                                     part_of_division * 100, client)
 
                 for user in result.users:
                     user_ids.append(str(user.id))
@@ -223,7 +233,7 @@ def get_channel(chat, date_to):
                 part_of_division -= 1
 
             if df_comments.size != 0:
-                df_comments.to_csv(f'{url.split("/")[1]}.csv',
+                df_comments.to_csv(f'{chat}.csv',
                                    mode='a',
                                    sep=';',
                                    header=True,
@@ -238,7 +248,6 @@ def get_channel(chat, date_to):
                 df_buffer.rename(columns={'Index': 'ID'}, inplace=True)
                 df_buffer.columns = ['ID', 'COUNT']
                 df_result = df_result.append(df_buffer)
-                df_buffer = df_buffer[0:0]
 
         except:
             print(f'Нет информации по посту!!!!ID: {str(post.id)}')
@@ -258,12 +267,7 @@ def get_channel(chat, date_to):
 
     df_result = df_result.groupby(['ID'])[['COUNT']].sum().reset_index()
     df_result = df_result.sort_values(by=['COUNT'], ascending=[False])
-    df_result.to_csv(f'{url.split("/")[1]}_users.csv',
-                     mode='a',
-                     sep=';',
-                     header=True,
-                     index=False,
-                     encoding='utf-16')
+
 
     client.disconnect()
     return df_result
@@ -284,13 +288,22 @@ def get_report(update, context):
     if type_report == 'channel':
         df_list = get_channel(chat, date_to)
 
-    df_list.to_csv(f'{chat}.csv', sep=';', header=True, index=False,
-                   encoding='utf-16')
-    path = os.path.abspath(f'{chat}.csv')
+        df_list.to_csv(f'{chat}_users.csv', sep=';', header=True, index=False,
+                       encoding='utf-16')
+        path = os.path.abspath(f'{chat}.csv')
+        path_users = os.path.abspath(f'{chat}_users.csv')
+
+        context.bot.send_document(
+            chat_id=user_chat.id,
+            document=open(f'{path_users}', 'rb')
+        )
+        os.remove(path_users)
+
     context.bot.send_document(
         chat_id=user_chat.id,
         document=open(f'{path}', 'rb')
     )
+
     os.remove(path)
 
 

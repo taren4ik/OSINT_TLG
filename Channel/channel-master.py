@@ -54,7 +54,7 @@ async def comment_channal():
         offset_msg = messages_total
     else:
         print('нет поста!!!')
-
+    # offset_msg = 0
 
     while offset_msg > 0:
         client_msg = await client.get_messages(channel, ids=offset_msg)
