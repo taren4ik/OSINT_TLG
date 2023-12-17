@@ -178,7 +178,7 @@ def get_channel(chat, date_to):
             {'Id': post_id, 'Date': post_date,
              'Message': post_message})
 
-        df_post.to_csv(f'{url.split("/")[1]}.csv', mode='a',
+        df_post.to_csv(f'{url.split("/")[1]}_messages.csv', mode='a',
                        sep=':',
                        header=True,
                        index=False,
@@ -236,7 +236,7 @@ def get_channel(chat, date_to):
                 part_of_division -= 1
 
             if df_comments.size != 0:
-                df_comments.to_csv(f'{chat}.csv',
+                df_comments.to_csv(f'{chat}_messages.csv',
                                    mode='a',
                                    sep=';',
                                    header=True,
@@ -274,6 +274,7 @@ def get_channel(chat, date_to):
 
     client.disconnect()
     return df_result
+
 
 def get_message(chat):
     """Извлечение сообщений из чата."""
@@ -365,16 +366,16 @@ def get_report(update, context):
     if type_report == 'channel':
         df_list = get_channel(chat, date_to)
 
-        df_list.to_csv(f'{chat}_users.csv', sep=';', header=True, index=False,
-                       encoding='utf-16')
-        path = os.path.abspath(f'{chat}.csv')
-        path_users = os.path.abspath(f'{chat}_users.csv')
+        # df_list.to_csv(f'{chat}_users.csv', sep=';', header=True, index=False,
+        #                encoding='utf-16')
+        path = os.path.abspath(f'{chat}_messages.csv')
+        #path_users = os.path.abspath(f'{chat}_users.csv')
 
         context.bot.send_document(
             chat_id=user_chat.id,
-            document=open(f'{path_users}', 'rb')
+            document=open(f'{path}', 'rb')
         )
-        os.remove(path_users)
+        os.remove(path)
 
     elif type_report == 'chat_users':
         df_list = get_chat(chat)
