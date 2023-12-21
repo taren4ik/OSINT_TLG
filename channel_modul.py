@@ -1,5 +1,6 @@
 import os
 import time
+import  sqlite3
 
 import pandas as pd
 import datetime
@@ -9,7 +10,7 @@ from telegram import ReplyKeyboardMarkup, Bot
 from telegram.ext import CommandHandler, MessageHandler, Updater, Filters
 from telethon.sync import TelegramClient, functions
 from sqlalchemy import create_engine, select, MetaData, Table, Column, \
-    Integer, String
+    Integer, String, DateTime
 from sqlalchemy.orm import sessionmaker
 from telethon.tl.types import ChannelParticipantsAdmins
 
@@ -24,6 +25,24 @@ bot = Bot(token=token)
 BUTTONS = ('channel',
            'chat_users',
            'chat_messages',)
+
+
+def get_users(user_chat, chat):
+    """Запись в БД SQlite пользователей бота."""
+    connect = sqlite3.connect('users.db')
+    cursor = connect.cursor()
+    cursor.execute("""CREATE TABLE IF NOT EXISTS users(
+                    id INTEGER PRIMARY KEY,
+                    id_group INTEGER,
+                    username TEXT,
+                    firstname TEXT,
+                    request TEXT,
+                    date DATETIME);""")
+    connect.commit()
+    user = (user_chat.id, user_chat.username, user_chat.first_name, chat)
+    cursor.execute("""INSERT INTO users (id_group, firstname,
+                   username,request ) VALUES (?, ?, ?, ?);""", user)
+    connect.commit()
 
 
 def wake_up(update, context):
@@ -105,7 +124,7 @@ def get_channel(chat, date_to):
     post_date = []
     users_data = {}
 
-    date = list(map(int,date_to.split('.')))
+    date = list(map(int, date_to.split('.')))
     df_result = pd.DataFrame(columns=['ID', 'COUNT'])
     df_users = pd.DataFrame(
         {'Id': user_ids,
@@ -145,7 +164,7 @@ def get_channel(chat, date_to):
         offset_msg = messages_total
     else:
         print('нет поста!!!')
-    # offset_msg = 0
+
 
     while offset_msg > 0:
         client_msg = client.get_messages(url, ids=offset_msg)
@@ -362,6 +381,7 @@ def get_report(update, context):
     else:
         chat = context.user_data['chat_name']
     date_to = context.user_data['date_to']
+ #   get_users(user_chat, chat)
     set_event_loop(new_event_loop())
     if type_report == 'channel':
         df_list = get_channel(chat, date_to)
@@ -369,7 +389,6 @@ def get_report(update, context):
         # df_list.to_csv(f'{chat}_users.csv', sep=';', header=True, index=False,
         #                encoding='utf-16')
         path = os.path.abspath(f'{chat}_messages.csv')
-        #path_users = os.path.abspath(f'{chat}_users.csv')
 
         context.bot.send_document(
             chat_id=user_chat.id,
@@ -391,21 +410,7 @@ def get_report(update, context):
     )
 
     os.remove(path)
-# def get_users(user_chat, chat):
-#     """Запись в БД SQlite пользователей бота."""
-#     connect = sqlite3.connect('users.db')
-#     cursor = connect.cursor()
-#     cursor.execute("""CREATE TABLE IF NOT EXISTS users(
-#                     id INTEGER PRIMARY KEY,
-#                     id_group INTEGER,
-#                     username TEXT,
-#                     firstname TEXT,
-#                     request TEXT);""")
-#     connect.commit()
-#     user = (user_chat.id, user_chat.username, user_chat.first_name, chat)
-#     cursor.execute("""INSERT INTO users (id_group, firstname,
-#                    username,request) VALUES (?, ?, ?, ?);""", user)
-#     connect.commit()
+
 
 def main():
     updater = Updater(token)
