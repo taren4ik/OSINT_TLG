@@ -1,6 +1,6 @@
 import os
 import time
-import  sqlite3
+import sqlite3
 
 import pandas as pd
 import datetime
@@ -39,9 +39,13 @@ def get_users(user_chat, chat):
                     request TEXT,
                     date DATETIME);""")
     connect.commit()
-    user = (user_chat.id, user_chat.username, user_chat.first_name, chat)
+    user = (user_chat.id,
+            user_chat.username,
+            user_chat.first_name,
+            chat,
+            str(datetime.datetime.now()))
     cursor.execute("""INSERT INTO users (id_group, firstname,
-                   username,request ) VALUES (?, ?, ?, ?);""", user)
+                   username,request, date ) VALUES (?, ?, ?, ?, ?);""", user)
     connect.commit()
 
 
@@ -381,7 +385,7 @@ def get_report(update, context):
     else:
         chat = context.user_data['chat_name']
     date_to = context.user_data['date_to']
- #   get_users(user_chat, chat)
+    get_users(user_chat, chat)
     set_event_loop(new_event_loop())
     if type_report == 'channel':
         df_list = get_channel(chat, date_to)
