@@ -49,6 +49,22 @@ def get_users(user_chat, chat):
     connect.commit()
 
 
+# def check_subscibe(update, context):
+#     """Проверка подписки."""
+#     chat = update.effective_chat
+#     id = update.message.chat.id
+#     connect = sqlite3.connect('users.db')
+#     cursor = connect.cursor()
+#     cursor.execute("""SELECT id FROM users;""")
+#     connect.commit()
+#
+#     context.bot.send_message(
+#         chat_id=chat.id,
+#         text='Привет, {}. Введите название канала'.format(name),
+#     )
+
+
+
 def wake_up(update, context):
     """Запрос ссылки на канал/чат."""
     chat = update.effective_chat
