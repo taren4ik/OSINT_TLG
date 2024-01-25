@@ -217,7 +217,11 @@ def get_channel(chat, date_to):
             {'Id': post_id, 'Date': post_date,
              'Message': post_message})
 
-        df_post.to_csv(f'{url.split("/")[1]}_messages.csv', mode='a',
+        path_to = (
+            f'{url.split("/")[1]}' if url.split("/")[1] != '' else
+            url.split("/")[-1]
+                   )
+        df_post.to_csv(f'{path_to}_messages.csv', mode='a',
                        sep=':',
                        header=True,
                        index=False,
@@ -398,6 +402,8 @@ def get_report(update, context):
     type_report = update.message.text
     if context_user.find(r'https://t.me/') != -1:
         chat = context.user_data['chat_name'].split(r'/')[3]
+    elif context_user.find(r't.me/') != -1:
+        chat = context.user_data['chat_name'].split(r'/')[-1]
     else:
         chat = context.user_data['chat_name']
     date_to = context.user_data['date_to']
