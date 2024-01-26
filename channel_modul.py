@@ -217,11 +217,11 @@ def get_channel(chat, date_to):
             {'Id': post_id, 'Date': post_date,
              'Message': post_message})
 
-        path_to = (
-            f'{url.split("/")[1]}' if url.split("/")[1] != '' else
-            url.split("/")[-1]
-                   )
-        df_post.to_csv(f'{path_to}_messages.csv', mode='a',
+        # path_to = (
+        #     f'{url.split("/")[1]}' if url.split("/")[1] != '' else
+        #     url.split("/")[-1]
+         #          )
+        df_post.to_csv(f'{chat}_messages.csv', mode='a',
                        sep=':',
                        header=True,
                        index=False,
@@ -407,6 +407,11 @@ def get_report(update, context):
     else:
         chat = context.user_data['chat_name']
     date_to = context.user_data['date_to']
+    context.bot.send_message(
+        chat_id=user_chat.id,
+        text='Ожидайте, отчет выгружается... ',
+    )
+
     get_users(user_chat, chat)
     set_event_loop(new_event_loop())
     if type_report == 'channel':
