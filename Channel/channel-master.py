@@ -5,6 +5,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from telethon import TelegramClient
 from telethon import functions
+from  unittest import TestCase
 
 load_dotenv()
 
@@ -14,7 +15,7 @@ client = TelegramClient('osint', api_id, api_hash,
                         system_version='4.16.33-vxCUSTOM',
                         device_model='1.0.97')
 
-channel = 't.me/BO_AK_reborn'
+channel = 'https://t.me/KremlCirk'
 
 
 async def get_comment(channel, offset_msg, offset):
@@ -60,7 +61,7 @@ async def comment_channal():
         client_msg = await client.get_messages(channel, ids=offset_msg)
 
         if client_msg is not None:
-            if client_msg.date.date() < datetime.date(2023, 6, 1):
+            if client_msg.date.date() < datetime.date(2023, 12, 10):
                 break
             else:
                 post = client_msg

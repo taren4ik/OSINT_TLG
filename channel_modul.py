@@ -64,14 +64,13 @@ def get_users(user_chat, chat):
 #     )
 
 
-
 def wake_up(update, context):
     """Запрос ссылки на канал/чат."""
     chat = update.effective_chat
     name = update.message.chat.first_name
     context.bot.send_message(
         chat_id=chat.id,
-        text='Привет, {}. Введите название канала'.format(name),
+        text=f'Привет, {name}. Введите название канала',
     )
 
 
@@ -411,6 +410,7 @@ def get_report(update, context):
         chat_id=user_chat.id,
         text='Ожидайте, отчет выгружается... ',
     )
+    context.bot.delete_message()
 
     get_users(user_chat, chat)
     set_event_loop(new_event_loop())
