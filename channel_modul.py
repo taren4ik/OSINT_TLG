@@ -4,7 +4,7 @@ import sqlite3
 
 import pandas as pd
 import datetime
-from asyncio import set_event_loop, new_event_loop
+from asyncio import set_event_loop, new_event_loop, sleep
 from dotenv import load_dotenv
 from telegram import ReplyKeyboardMarkup, Bot
 from telegram.ext import CommandHandler, MessageHandler, Updater, Filters
@@ -406,11 +406,12 @@ def get_report(update, context):
     else:
         chat = context.user_data['chat_name']
     date_to = context.user_data['date_to']
-    context.bot.send_message(
+    message = context.bot.send_message(
         chat_id=user_chat.id,
         text='Ожидайте, отчет выгружается... ',
     )
-    context.bot.delete_message()
+    sleep(5)
+    context.bot.delete_message(user_chat.id, message.message_id)
 
     get_users(user_chat, chat)
     set_event_loop(new_event_loop())
