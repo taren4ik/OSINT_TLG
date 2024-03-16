@@ -408,9 +408,9 @@ def get_report(update, context):
     date_to = context.user_data['date_to']
     message = context.bot.send_message(
         chat_id=user_chat.id,
-        text='Ожидайте, отчет выгружается... ',
+        text='Ожидайте, отчет выгружается ... ',
     )
-    sleep(5)
+    time.sleep(5)
     context.bot.delete_message(user_chat.id, message.message_id)
 
     get_users(user_chat, chat)
@@ -419,14 +419,14 @@ def get_report(update, context):
         df_list = get_channel(chat, date_to)
 
         # df_list.to_csv(f'{chat}_users.csv', sep=';', header=True, index=False,
-        #                encoding='utf-16')
-        path = os.path.abspath(f'{chat}_messages.csv')
+        #                 encoding='utf-16')
+        path_messages = os.path.abspath(f'{chat}_messages.csv')
 
         context.bot.send_document(
             chat_id=user_chat.id,
-            document=open(f'{path}', 'rb')
+            document=open(f'{path_messages}', 'rb')
         )
-        os.remove(path)
+        os.remove(path_messages)
 
     elif type_report == 'chat_users':
         df_list = get_chat(chat)
