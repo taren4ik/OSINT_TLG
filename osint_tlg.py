@@ -21,7 +21,7 @@ from sqlalchemy import create_engine, select, MetaData, Table, Column, \
     Integer, String
 from sqlalchemy.orm import sessionmaker
 
-from channel_modul import comment_channal
+
 
 
 load_dotenv()
