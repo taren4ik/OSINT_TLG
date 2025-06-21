@@ -19,8 +19,9 @@ api_id = os.getenv('API_ID_2')
 api_hash = os.getenv('API_HASH_2')
 
 # Список исходных каналов и целевой канал
-source_channels = ['svodka25', 'vlnews25', 'newsvlc', 'newsvlru', 'jobbber123']
-target_channel = 'news_fresh_vl'
+# source_channels = ['svodka25', 'vlnews25', 'newsvlc', 'newsvlru', 'jobbber123']
+source_channels = ['news_kremlin']
+target_channel = 'news_kremlin_reserve'
 
 client = TelegramClient('forward',
                         api_id,

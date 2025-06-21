@@ -7,6 +7,6 @@ COPY . .
 RUN pip3 install -r /app/requirements.txt --no-cache-dir
 
 
-CMD ["python", "channel_modul.py" ]
+CMD ["python", "forward_messages_to_channel.py" ]
 
-LABEL author='turgenevski@yandex.ru' version=1.6
+LABEL author='JGold' version=1.0
