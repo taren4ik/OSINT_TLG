@@ -10,7 +10,7 @@ api_id = os.getenv('API_ID')
 api_hash = os.getenv('API_HASH')
 
 # Список исходных каналов и целевой канал
-source_channels = ['svodka25']
+source_channels = ['make_dobro']
 target_channel = 'news_fresh_vl'
 
 client = TelegramClient(
