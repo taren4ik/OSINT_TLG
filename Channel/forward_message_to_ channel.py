@@ -25,26 +25,39 @@ client = TelegramClient(
 
 async def main():
     await client.start()
-    print("Бот запущен! Ожидаем сообщения...")
+    print("Клиент запущен!")
 
-    @client.on(events.NewMessage(chats=source_channels))
+    sources = [await client.get_entity(username) for username in SOURCE_USERNAMES]
+    target = await client.get_entity(TARGET_USERNAME)
+
+    @client.on(events.NewMessage(chats=sources))
     async def handler(event):
-        try:
-            await client.forward_messages(target_channel, event.message)
-            print(
-                f"Переслано сообщение из {event.chat.title} | ID: {event.message.id}")
+        message_id = (event.chat_id, event.message.id)
 
-            await asyncio.sleep(randrange(1, 7))
+        if message_id in forwarded_messages:
+            return
+
+        try:
+            try:
+                await client.forward_messages(target, event.message)
+            except errors.RPCError:
+                text = event.message.text or ""
+                if text:
+                    await client.send_message(target, text)
+            forwarded_messages.add(message_id)
+
+            print(f"Переслано: {event.chat.title} | ID: {event.message.id}")
+
+            await asyncio.sleep(randint(2, 6))
+
+        except errors.FloodWait as e:
+            print(f"FloodWait {e.seconds} сек. Ожидаем...")
+            await asyncio.sleep(e.seconds + 1)
 
         except Exception as e:
-            print(f"Ошибка: {str(e)}")
-
-    while True:
-        await asyncio.sleep(1)
+            print("Ошибка:", e)
+    await client.run_until_disconnected()
 
 
-if __name__ == '__main__':
-    try:
-        client.loop.run_until_complete(main())
-    except KeyboardInterrupt:
-        print("Работа бота остановлена")
+if __name__ == "__main__":
+    asyncio.run(main())
