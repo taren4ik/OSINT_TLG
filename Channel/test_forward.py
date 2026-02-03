@@ -1,27 +1,30 @@
 import os
+import logging
 from dotenv import load_dotenv
 from telethon import TelegramClient, events
 
 load_dotenv()
 
-api_id = int(os.getenv("API_ID_3"))
-api_hash = os.getenv("API_HASH_3")
+API_ID = int(os.getenv("API_ID_3"))
+API_HASH = os.getenv("API_HASH_3")
+SOURCE = os.getenv("SOURCE")
+TARGET = os.getenv("TARGET")
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 
 client = TelegramClient(
     'session_tests',
-    api_id,
-    api_hash,
+    API_ID,
+    API_HASH,
     device_model="iPhone 14 Pro Max",
     system_version="14.8.1",
     app_version="10.2",
     lang_code="ru"
 )
 
-SOURCE = {
-
-}
-
-TARGET = 'news_fresh_vl'
 
 
 @client.on(events.NewMessage)
@@ -36,5 +39,5 @@ async def handler(event):
 
 
 client.start()
-print("✅ Запущено")
+logging.info(f"Приложение запущено ✅")
 client.run_until_disconnected()
