@@ -1,7 +1,10 @@
 import os
+import asyncio
+import random
 import logging
 from dotenv import load_dotenv
 from telethon import TelegramClient, events
+from telethon.errors import FloodWaitError, RPCError
 
 load_dotenv()
 
@@ -9,6 +12,7 @@ API_ID = int(os.getenv("API_ID_3"))
 API_HASH = os.getenv("API_HASH_3")
 SOURCE = os.getenv("SOURCE")
 TARGET = os.getenv("TARGET")
+forwarded = set()
 
 logging.basicConfig(
     level=logging.INFO,
@@ -26,18 +30,37 @@ client = TelegramClient(
 )
 
 
-
 @client.on(events.NewMessage)
 async def handler(event):
     if not event.chat or not event.chat.username:
         return
-
     if event.chat.username not in SOURCE:
         return
+    if not event.message.message:
+        return
 
-    await client.forward_messages(TARGET, event.message)
+    # key = (event.chat_id, event.message.id)
+    # if key in forwarded:
+    #     return
+    # forwarded.add(key)
+
+    try:
+        await client.forward_messages(TARGET, event.message)
+        logging.info(f"➡️ @{event.chat.username}: {event.message.id}")
+        await asyncio.sleep(random.uniform(2, 4))
+
+    except FloodWaitError as e:
+        logging.warning(f"⏳ FloodWait {e.seconds}")
+        await asyncio.sleep(e.seconds + 1)
+
+    except RPCError:
+        if event.message.text:
+            await client.send_message(TARGET, event.message.text)
+
+    except Exception:
+        logging.exception("❌ Ошибка")
 
 
-client.start()
-logging.info(f"Приложение запущено ✅")
-client.run_until_disconnected()
+with client:
+    logging.info("🚀 Форвардер запущен")
+    client.run_until_disconnected()
