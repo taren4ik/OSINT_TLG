@@ -10,7 +10,8 @@ load_dotenv()
 
 API_ID = int(os.getenv("API_ID_3"))
 API_HASH = os.getenv("API_HASH_3")
-SOURCE = os.getenv("SOURCE")
+#SOURCE = os.getenv("SOURCE")
+os.getenv("SOURCE").split(",")
 TARGET = os.getenv("TARGET")
 forwarded = set()
 

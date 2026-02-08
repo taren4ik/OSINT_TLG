@@ -9,6 +9,6 @@ RUN pip3 install --upgrade pip
 RUN pip3 install -r /app/requirements.txt --no-cache-dir
 
 
-CMD ["python", "forward_messages_to_channel.py" ]
+CMD ["python", "test_forward.py" ]
 
-LABEL author='turgenevski@yandex.ru' version=1.6
+LABEL author='turgenevski@yandex.ru' version=1.1
