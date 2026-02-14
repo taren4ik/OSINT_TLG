@@ -10,7 +10,6 @@ load_dotenv()
 
 API_ID = int(os.getenv("API_ID_3"))
 API_HASH = os.getenv("API_HASH_3")
-#SOURCE = os.getenv("SOURCE")
 SOURCE = os.getenv("SOURCE").split(",")
 TARGET = os.getenv("TARGET")
 forwarded = set()
@@ -31,7 +30,7 @@ client = TelegramClient(
 )
 
 
-@client.on(events.NewMessage)
+@client.on(events.NewMessage(chats=SOURCE))
 async def handler(event):
     if not event.chat or not event.chat.username:
         return
