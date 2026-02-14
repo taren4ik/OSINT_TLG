@@ -11,7 +11,7 @@ load_dotenv()
 API_ID = int(os.getenv("API_ID_3"))
 API_HASH = os.getenv("API_HASH_3")
 #SOURCE = os.getenv("SOURCE")
-os.getenv("SOURCE").split(",")
+SOURCE = os.getenv("SOURCE").split(",")
 TARGET = os.getenv("TARGET")
 forwarded = set()
 
@@ -37,7 +37,7 @@ async def handler(event):
         return
     if event.chat.username not in SOURCE:
         return
-    if not event.message.message:
+    if not event.message:
         return
 
     # key = (event.chat_id, event.message.id)
