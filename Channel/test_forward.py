@@ -39,7 +39,7 @@ async def handler(event):
         return
     if not event.message:
         return
-    text = (event.message.text or "").lower()
+    text = (event.message.raw_text or "").lower()
     if "реклама" in text:
         return
     # key = (event.chat_id, event.message.id)
