@@ -39,7 +39,9 @@ async def handler(event):
         return
     if not event.message:
         return
-
+    text = (event.message.text or "").lower()
+    if "реклама" in text:
+        return
     # key = (event.chat_id, event.message.id)
     # if key in forwarded:
     #     return
