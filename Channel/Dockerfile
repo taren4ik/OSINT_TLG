@@ -1,14 +1,16 @@
 FROM python:3.7.9-slim
 
-
 WORKDIR /app
 
-COPY . .
+COPY requirements.txt .
 
-RUN pip3 install --upgrade pip
-RUN pip3 install -r /app/requirements.txt --no-cache-dir
+RUN pip install --upgrade pip \
+    && pip install -r requirements.txt --no-cache-dir
 
+COPY test_forward.py .
+
+USER nobody
 
 CMD ["python", "test_forward.py"]
 
-LABEL author='turgenevski@yandex.ru' version=1.6.1
+LABEL author="turgenevski@yandex.ru" version="1.6.1"

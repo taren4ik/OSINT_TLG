@@ -12,7 +12,6 @@ API_ID = int(os.getenv("API_ID_3"))
 API_HASH = os.getenv("API_HASH_3")
 SOURCE = os.getenv("SOURCE").split(",")
 TARGET = os.getenv("TARGET")
-forwarded = set()
 
 logging.basicConfig(
     level=logging.INFO,
@@ -34,17 +33,11 @@ client = TelegramClient(
 async def handler(event):
     if not event.chat or not event.chat.username:
         return
-    if event.chat.username not in SOURCE:
-        return
     if not event.message:
         return
     text = (event.message.raw_text or "").lower()
     if "реклама" in text:
         return
-    # key = (event.chat_id, event.message.id)
-    # if key in forwarded:
-    #     return
-    # forwarded.add(key)
 
     try:
         await client.forward_messages(TARGET, event.message)
