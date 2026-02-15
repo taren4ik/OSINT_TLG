@@ -22,9 +22,9 @@ client = TelegramClient(
     'session_tests',
     API_ID,
     API_HASH,
-    device_model="iPhone 14 Pro Max",
-    system_version="14.8.1",
-    app_version="10.2",
+    device_model="iPhone 15 Pro",
+    system_version="iOS 17",
+    app_version="10.5",
     lang_code="ru"
 )
 
