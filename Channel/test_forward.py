@@ -22,10 +22,8 @@ client = TelegramClient(
     'tg_session',
     API_ID,
     API_HASH,
-    device_model="iPhone 15 Pro",
-    system_version="iOS 17",
-    app_version="10.5",
-    lang_code="ru"
+    system_version='4.16.31-vxCUSTOM',
+    device_model='1.0.99'
 )
 
 
