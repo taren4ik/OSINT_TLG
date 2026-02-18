@@ -19,7 +19,7 @@ logging.basicConfig(
 )
 
 client = TelegramClient(
-    'session_tests',
+    'tg_session',
     API_ID,
     API_HASH,
     device_model="iPhone 15 Pro",
