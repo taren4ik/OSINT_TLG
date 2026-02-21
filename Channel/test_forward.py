@@ -17,9 +17,9 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
-
++7
 client = TelegramClient(
-    'tg_session',
+    'tgch_session',
     API_ID,
     API_HASH,
     system_version='4.16.31-vxCUSTOM',
@@ -40,7 +40,7 @@ async def handler(event):
     try:
         await client.forward_messages(TARGET, event.message)
         logging.info(f"➡️ @{event.chat.username}: {event.message.id}")
-        await asyncio.sleep(random.uniform(2, 4))
+        await asyncio.sleep(random.uniform(3, 9))
 
     except FloodWaitError as e:
         logging.warning(f"⏳ FloodWait {e.seconds}")
