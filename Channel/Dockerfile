@@ -9,6 +9,6 @@ RUN pip install --upgrade pip \
 
 COPY test_forward.py .
 
-CMD ["python", "test_forward.py"]
+CMD ["python", "forward_messages.py"]
 
 LABEL author="turgenevski@yandex.ru" version="1.2"
