@@ -1,5 +1,6 @@
 import os
 import asyncio
+import socks
 import random
 import logging
 from dotenv import load_dotenv
@@ -17,14 +18,20 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
-+7
+
 client = TelegramClient(
     'tgch_session',
     API_ID,
     API_HASH,
-    system_version='4.16.31-vxCUSTOM',
-    device_model='1.0.99'
+    proxy=(
+        socks.SOCKS5,
+        os.getenv("PROXY_HOST"),
+        int(os.getenv("PROXY_PORT")),
+    ),
+    system_version="4.16.31-vxCUSTOM",
+    device_model="1.0.99",
 )
+
 
 
 @client.on(events.NewMessage(chats=SOURCE))
