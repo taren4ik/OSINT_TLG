@@ -33,9 +33,11 @@ client = TelegramClient(
 )
 
 
-
 @client.on(events.NewMessage(chats=SOURCE))
 async def handler(event):
+    """
+    Get message from chat.
+    """
     if not event.chat or not event.chat.username:
         return
     if not event.message:
